@@ -9,7 +9,7 @@ const HeroSection = styled.section`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: calc(100vh - 64px); /* 100vh minus the navbar height (64px) */
+  height: calc(100vh - 64px);
   position: relative;
   overflow: hidden;
   padding-top: 5rem;
@@ -112,8 +112,8 @@ export default function Home() {
         <ScatteredLines />
         <Tagline>Build with Precision</Tagline>
         <Title>
-          <BlueText>Alca</BlueText>
-          <PrintText>telz</PrintText>
+          <BlueText>Blue</BlueText>
+          <PrintText>Print</PrintText>
         </Title>
       </HeroSection>
     </>
