@@ -161,7 +161,7 @@ const ResourceItem = styled.div<{ $isDark: boolean }>`
   cursor: pointer;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border: 1px solid ${({ $isDark }) => ($isDark ? "#444444" : "#e5e7eb")};
-  height: 240px;
+  height: 150px;
 
   &:hover {
     transform: translateY(-5px);
@@ -297,6 +297,21 @@ const EmptyMessage = styled.p<{ $isDark: boolean }>`
   }
 `;
 
+const StatusMessage = styled.p<{ $isDark: boolean }>`
+  font-size: 1rem;
+  color: ${({ $isDark }) => ($isDark ? "#e5e7eb" : "#4b5563")};
+  text-align: center;
+  padding: 1rem;
+  border-radius: 8px;
+  background: ${({ $isDark }) => ($isDark ? "#2d2d2d" : "#f3f4f6")};
+  margin-bottom: 1.5rem;
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+    padding: 0.75rem;
+  }
+`;
+
 const StyledLink = styled(Link)`
   text-decoration: none;
   display: block;
@@ -325,9 +340,8 @@ const categoryDescriptions: { [key: string]: string } = {
   Other: "Unique resources that don’t fit elsewhere.",
 };
 
-export default function CategoryDetailPage({ params }: { params: { name: string } }) {
-  const router = useRouter();
-  const { name } = params;
+export default async function CategoryDetailPage({ params }: { params: Promise<{ name: string }> }) {  const router = useRouter();
+  const { name } = await params;
   const { records, loading, error } = useCloudKitData("CD_ResourceEntity");
   const [searchText, setSearchText] = useState("");
   const [isDark, setIsDark] = useState(false);
@@ -424,9 +438,9 @@ export default function CategoryDetailPage({ params }: { params: { name: string 
                     <ResourceSummary $isDark={isDark}>
                       {resource.fields.summary?.value || "No summary available"}
                     </ResourceSummary>
-                  </ResourceInfo>
-                </ResourceItem>
-              </StyledLink>
+                    </ResourceInfo>
+                  </ResourceItem>
+                </StyledLink>
             ))
           )}
         </ResourceList>
@@ -434,18 +448,3 @@ export default function CategoryDetailPage({ params }: { params: { name: string 
     </CategoryContainer>
   );
 }
-
-const StatusMessage = styled.p<{ $isDark: boolean }>`
-  font-size: 1rem;
-  color: ${({ $isDark }) => ($isDark ? "#e5e7eb" : "#4b5563")};
-  text-align: center;
-  padding: 1rem;
-  border-radius: 8px;
-  background: ${({ $isDark }) => ($isDark ? "#2d2d2d" : "#f3f4f6")};
-  margin-bottom: 1.5rem;
-
-  @media (max-width: 768px) {
-    font-size: 0.9rem;
-    padding: 0.75rem;
-  }
-`;
