@@ -18,7 +18,7 @@ const PageContainer = styled.div<{ $isDark: boolean }>`
   background: ${({ $isDark }) => ($isDark ? '#1a1a1a' : '#ffffff')};
   min-height: 100vh;
   padding: 3rem 1rem;
-  font-family: 'Georgia', serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
   transition: background 0.3s ease, color 0.3s ease;
 

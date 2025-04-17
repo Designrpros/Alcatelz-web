@@ -1,4 +1,3 @@
-// app/resource/[recordName]/page.tsx
 'use client';
 
 import styled from 'styled-components';
@@ -14,152 +13,151 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Link from 'next/link';
 
-// Styled components (exactly as provided)
+// Define the type for CloudKit records
+interface CloudKitRecord {
+  recordName: string;
+  fields: {
+    title?: { value: string };
+    author?: { value: string };
+    summary?: { value: string };
+    categoryName?: { value: string };
+    content?: { value: string };
+    createdBy?: { value: string };
+  };
+}
+
+// Styled components with a Medium-like design, using sans-serif font
 const ResourceContainer = styled.div<{ $isDark: boolean }>`
   background: ${({ $isDark }) => ($isDark ? '#1a1a1a' : '#ffffff')};
-  padding: 1rem 0;
-  width: 100%;
   min-height: 100vh;
+  padding: 3rem 1rem;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  transition: background 0.3s ease;
+  color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
+  transition: background 0.3s ease, color 0.3s ease;
 
   @media (max-width: 768px) {
-    padding: 0.75rem 0;
+    padding: 2rem 0.75rem;
   }
 `;
 
 const InnerContent = styled.div`
-  max-width: 1440px;
+  max-width: 800px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 0.5rem;
   box-sizing: border-box;
-
-  @media (max-width: 1024px) {
-    padding: 0 0.5rem;
-  }
-
-  @media (max-width: 768px) {
-    padding: 0 0.25rem;
-  }
-
-  @media (max-width: 480px) {
-    padding: 0 0.25rem;
-  }
 `;
 
 const BackButton = styled.button<{ $isDark: boolean }>`
   background: none;
   border: none;
-  color: ${({ $isDark }) => ($isDark ? '#cccccc' : '#666666')};
+  color: ${({ $isDark }) => ($isDark ? '#9ca3af' : '#6b7280')};
   font-size: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1rem;
-  transition: color 0.2s ease;
+  margin-bottom: 2rem;
+  transition: color 0.3s ease;
 
   &:hover {
-    color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#333333')};
+    color: #9d845d;
   }
 
   @media (max-width: 768px) {
     font-size: 0.9rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
   }
 
   @media (max-width: 480px) {
     font-size: 0.85rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
   }
 `;
 
 const Title = styled.h1<{ $isDark: boolean }>`
-  font-size: 2.25rem;
-  font-weight: 800;
-  color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#000000')};
-  margin-bottom: 0.5rem;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#1f2937')};
+  margin-bottom: 2rem;
+  line-height: 1.2;
 
   @media (max-width: 1024px) {
-    font-size: 2rem;
+    font-size: 2.25rem;
   }
 
   @media (max-width: 768px) {
-    font-size: 1.75rem;
-    margin-bottom: 0.4rem;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
   }
 
   @media (max-width: 480px) {
-    font-size: 1.5rem;
-    margin-bottom: 0.3rem;
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
   }
 `;
 
 const SearchInput = styled.input<{ $isDark: boolean }>`
   width: 100%;
+  max-width: 400px;
   padding: 0.75rem 1rem;
-  font-size: 1.1rem;
-  border: 1px solid ${({ $isDark }) => ($isDark ? '#333333' : '#cccccc')};
-  border-radius: 6px;
-  margin-bottom: 1rem;
+  font-size: 1rem;
+  border: 1px solid ${({ $isDark }) => ($isDark ? '#444444' : '#e5e7eb')};
+  border-radius: 8px;
   background: ${({ $isDark }) => ($isDark ? '#2d2d2d' : '#ffffff')};
-  color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#000000')};
-  transition: border-color 0.2s ease;
-  box-sizing: border-box;
+  color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
 
   &:focus {
     outline: none;
-    border-color: ${({ $isDark }) => ($isDark ? '#666666' : '#999999')};
+    border-color: #9d845d;
+    box-shadow: 0 0 0 3px rgba(157, 132, 93, 0.2);
   }
 
-  @media (max-width: 1024px) {
-    font-size: 1rem;
-    padding: 0.65rem 0.9rem;
+  &::placeholder {
+    color: ${({ $isDark }) => ($isDark ? '#6b7280' : '#9ca3af')};
   }
 
   @media (max-width: 768px) {
+    max-width: 100%;
     padding: 0.6rem 0.8rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
   }
 
   @media (max-width: 480px) {
     font-size: 0.9rem;
     padding: 0.5rem 0.75rem;
-    margin-bottom: 0.5rem;
   }
 `;
 
 const DetailBlock = styled.div<{ $isDark: boolean }>`
-  background: ${({ $isDark }) => ($isDark ? '#2d2d2d' : '#f5f5f5')};
-  border-radius: 6px;
-  padding: 0.5rem;
-  margin-bottom: 0.25rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: background 0.2s ease;
-
-  @media (max-width: 1024px) {
-    padding: 0.4rem;
-    gap: 0.4rem;
-  }
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  color: ${({ $isDark }) => ($isDark ? '#d1d5db' : '#4b5563')};
 
   @media (max-width: 768px) {
-    padding: 0.4rem;
+    font-size: 0.9rem;
     gap: 0.3rem;
+    margin-bottom: 0.75rem;
   }
 
   @media (max-width: 480px) {
-    padding: 0.3rem;
+    font-size: 0.85rem;
     gap: 0.25rem;
   }
 `;
 
 const Label = styled.span<{ $isDark: boolean }>`
   font-weight: 500;
-  color: ${({ $isDark }) => ($isDark ? '#cccccc' : '#888888')};
+  color: ${({ $isDark }) => ($isDark ? '#9ca3af' : '#6b7280')};
   margin-right: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 
   @media (max-width: 768px) {
     font-size: 0.9rem;
@@ -172,7 +170,8 @@ const Label = styled.span<{ $isDark: boolean }>`
 
 const TextContent = styled.p<{ $isDark: boolean }>`
   font-size: 1rem;
-  color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#000000')};
+  line-height: 1.6;
+  color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
   margin: 0;
 
   @media (max-width: 1024px) {
@@ -189,22 +188,19 @@ const TextContent = styled.p<{ $isDark: boolean }>`
 `;
 
 const DropdownContainer = styled.div<{ $isDark: boolean }>`
-  background: ${({ $isDark }) => ($isDark ? '#2d2d2d' : '#f5f5f5')};
-  border-radius: 6px;
-  padding: 0.5rem;
-  margin-bottom: 0.25rem;
-  transition: background 0.2s ease;
+  background: ${({ $isDark }) => ($isDark ? '#2d2d2d' : '#f9fafb')};
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid ${({ $isDark }) => ($isDark ? '#444444' : '#e5e7eb')};
+  transition: background 0.3s ease, border-color 0.3s ease;
 
   @media (max-width: 1024px) {
-    padding: 0.4rem;
+    padding: 0.75rem;
   }
 
   @media (max-width: 768px) {
-    padding: 0.4rem;
-  }
-
-  @media (max-width: 480px) {
-    padding: 0.3rem;
+    padding: 0.5rem;
   }
 `;
 
@@ -213,8 +209,13 @@ const DropdownHeader = styled.div<{ $isDark: boolean }>`
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  padding: 0.25rem 0;
-  color: ${({ $isDark }) => ($isDark ? '#cccccc' : '#666666')};
+  padding: 0.5rem 0;
+  color: ${({ $isDark }) => ($isDark ? '#9ca3af' : '#6b7280')};
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #9d845d;
+  }
 `;
 
 const DropdownTitle = styled.span`
@@ -232,14 +233,14 @@ const DropdownTitle = styled.span`
 
 const DropdownContent = styled.div<{ $isOpen: boolean; $isDark: boolean }>`
   display: ${({ $isOpen }) => ($isOpen ? 'block' : 'none')};
-  padding-top: 0.25rem;
+  padding-top: 0.5rem;
 `;
 
 const DropdownItem = styled.div<{ $isDark: boolean }>`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#000000')};
+  color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
 
   @media (max-width: 768px) {
     gap: 0.3rem;
@@ -250,11 +251,32 @@ const DropdownItem = styled.div<{ $isDark: boolean }>`
   }
 `;
 
+const BlockWrapper = styled.div`
+  margin-bottom: 2rem;
+
+  @media (max-width: 768px) {
+    margin-bottom: 1.5rem;
+  }
+`;
+
+const BlockLabel = styled.div<{ $isDark: boolean }>`
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: ${({ $isDark }) => ($isDark ? '#9ca3af' : '#6b7280')};
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  @media (max-width: 768px) {
+    font-size: 0.85rem;
+  }
+`;
+
 const CodeBlockWrapper = styled.div`
   position: relative;
-  margin-bottom: 0.25rem;
-  width: 100%;
-  box-sizing: border-box;
+  margin-bottom: 2rem;
+  border-radius: 8px;
+  overflow: hidden;
 `;
 
 const CodeBlockContainer = styled.div`
@@ -273,99 +295,162 @@ const CodeBlockContent = styled.div`
 `;
 
 const MarkdownContent = styled.div<{ $isDark: boolean }>`
-  font-size: 1rem;
-  color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#000000')};
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
   margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
 
   & > * {
-    margin: 0.25rem 0;
+    margin: 0.5rem 0;
   }
 
-  code {
-    background: ${({ $isDark }) => ($isDark ? '#1f2937' : '#e5e7eb')};
-    padding: 0.2rem 0.4rem;
-    border-radius: 4px;
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#1f2937')};
+    margin: 1rem 0 0.5rem;
   }
 
-  pre {
-    background: ${({ $isDark }) => ($isDark ? '#1f2937' : '#e5e7eb')};
-    padding: 1rem;
-    border-radius: 4px;
-    overflow-x: auto;
+  p {
+    margin: 0.5rem 0;
   }
 
-  @media (max-width: 1024px) {
-    font-size: 0.95rem;
+  ul, ol {
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
   }
-
-  @media (max-width: 768px) {
-    font-size: 0.9rem;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 0.85rem;
-  }
-`;
-
-const TodoContent = styled.ul<{ $isDark: boolean }>`
-  font-size: 1rem;
-  color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#000000')};
-  margin: 0;
-  padding-left: 1.5rem;
-  list-style-type: disc;
 
   li {
     margin: 0.25rem 0;
   }
 
-  @media (max-width: 1024px) {
+  code {
+    background: ${({ $isDark }) => ($isDark ? '#2d2d2d' : '#f3f4f6')};
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'Menlo', monospace;
     font-size: 0.95rem;
   }
 
+  pre {
+    background: ${({ $isDark }) => ($isDark ? '#2d2d2d' : '#f3f4f6')};
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+
+  a {
+    color: #9d845d;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  a:hover {
+    color: #7b6a47;
+    text-decoration: underline;
+  }
+
+  @media (max-width: 1024px) {
+    font-size: 1.05rem;
+  }
+
   @media (max-width: 768px) {
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
 
   @media (max-width: 480px) {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
+  }
+`;
+
+const TodoContent = styled.ul<{ $isDark: boolean }>`
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
+  margin: 0;
+  padding-left: 1.5rem;
+  list-style-type: disc;
+
+  li {
+    margin: 0.5rem 0;
+  }
+
+  @media (max-width: 1024px) {
+    font-size: 1.05rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.95rem;
   }
 `;
 
 const ImageContent = styled.img`
   max-width: 100%;
   height: auto;
-  border-radius: 6px;
-  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
 
 const DividerContent = styled.hr<{ $isDark: boolean }>`
   border: 0;
-  border-top: 1px solid ${({ $isDark }) => ($isDark ? '#444444' : '#cccccc')};
-  margin: 0.5rem 0;
+  border-top: 1px solid ${({ $isDark }) => ($isDark ? '#444444' : '#e5e7eb')};
+  margin: 2rem 0;
 `;
 
 const ResourceContent = styled.a<{ $isDark: boolean }>`
-  font-size: 1rem;
-  color: ${({ $isDark }) => ($isDark ? '#60a5fa' : '#2563eb')};
+  font-size: 1.1rem;
+  color: #9d845d;
   text-decoration: none;
   margin: 0;
+  transition: color 0.3s ease;
 
   &:hover {
+    color: #7b6a47;
     text-decoration: underline;
   }
 
   @media (max-width: 1024px) {
-    font-size: 0.95rem;
+    font-size: 1.05rem;
   }
 
   @media (max-width: 768px) {
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
 
   @media (max-width: 480px) {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
+  }
+`;
+
+const StatusMessage = styled.div<{ $isDark: boolean }>`
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
+  text-align: center;
+  padding: 2rem;
+  background: ${({ $isDark }) => ($isDark ? '#2d2d2d' : '#f3f4f6')};
+  border-radius: 8px;
+  margin: 2rem 0;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+`;
+
+const CategoryLink = styled(Link)`
+  color: #9d845d;
+  text-decoration: none;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #7b6a47;
+    text-decoration: underline;
   }
 `;
 
@@ -380,8 +465,12 @@ export default function ResourceDetailPage({ params: paramsPromise }: { params: 
   const params = React.use(paramsPromise);
   const router = useRouter();
   const { recordName } = params;
-  const { records, loading, error } = useCloudKitData('CD_ResourceEntity');
-  const resource = records.find((r) => r.recordName === recordName);
+  const { records, loading, error } = useCloudKitData('CD_ResourceEntity') as {
+    records: CloudKitRecord[];
+    loading: boolean;
+    error: string | null;
+  };
+  const resource = records.find((r: CloudKitRecord) => r.recordName === recordName);
   const [isDark, setIsDark] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -410,7 +499,9 @@ export default function ResourceDetailPage({ params: paramsPromise }: { params: 
   if (loading) {
     return (
       <ResourceContainer $isDark={isDark}>
-        <InnerContent>Loading...</InnerContent>
+        <InnerContent>
+          <StatusMessage $isDark={isDark}>Loading...</StatusMessage>
+        </InnerContent>
       </ResourceContainer>
     );
   }
@@ -418,7 +509,9 @@ export default function ResourceDetailPage({ params: paramsPromise }: { params: 
   if (error || !resource) {
     return (
       <ResourceContainer $isDark={isDark}>
-        <InnerContent>Error loading resource or resource not found.</InnerContent>
+        <InnerContent>
+          <StatusMessage $isDark={isDark}>Error loading resource or resource not found.</StatusMessage>
+        </InnerContent>
       </ResourceContainer>
     );
   }
@@ -473,9 +566,9 @@ export default function ResourceDetailPage({ params: paramsPromise }: { params: 
         <DetailBlock $isDark={isDark}>
           <Label $isDark={isDark}>Category:</Label>
           <TextContent $isDark={isDark}>
-            <Link href={`/category/${resource.fields.categoryName?.value || 'Other'}`}>
+            <CategoryLink href={`/category/${resource.fields.categoryName?.value || 'Other'}`}>
               {resource.fields.categoryName?.value || 'Uncategorized'}
-            </Link>
+            </CategoryLink>
           </TextContent>
         </DetailBlock>
         <DropdownContainer $isDark={isDark}>
@@ -498,50 +591,51 @@ export default function ResourceDetailPage({ params: paramsPromise }: { params: 
           onChange={(e) => setSearchText(e.target.value)}
         />
         {filteredBlocks.length === 0 ? (
-          <DetailBlock $isDark={isDark}>
-            <TextContent $isDark={isDark}>No matching content found.</TextContent>
-          </DetailBlock>
+          <StatusMessage $isDark={isDark}>No matching content found.</StatusMessage>
         ) : (
           filteredBlocks.map((blockItem) => (
-            <React.Fragment key={blockItem.id}>
+            <BlockWrapper key={blockItem.id}>
               {blockItem.type === 'Text' ? (
-                <DetailBlock $isDark={isDark}>
-                  <Label $isDark={isDark}>Text:</Label>
+                <>
+                  <BlockLabel $isDark={isDark}>Text:</BlockLabel>
                   <TextContent $isDark={isDark}>{blockItem.content}</TextContent>
-                </DetailBlock>
+                </>
               ) : blockItem.type === 'Code' ? (
-                <CodeBlockWrapper>
-                  <CodeBlockContainer>
-                    <CopyButton code={blockItem.content} />
-                    <SyntaxHighlighter
-                      language="swift"
-                      style={vscDarkPlus}
-                      customStyle={{
-                        marginTop: '1rem',
-                        borderRadius: '4px',
-                        padding: '1rem',
-                        backgroundColor: isDark ? '#1f2937' : '#2d2d2d',
-                        position: 'relative',
-                        zIndex: 1,
-                        width: '100%',
-                        boxSizing: 'border-box',
-                      }}
-                      PreTag={CodeBlockContent}
-                    >
-                      {blockItem.content}
-                    </SyntaxHighlighter>
-                  </CodeBlockContainer>
-                </CodeBlockWrapper>
+                <>
+                  <BlockLabel $isDark={isDark}>Code:</BlockLabel>
+                  <CodeBlockWrapper>
+                    <CodeBlockContainer>
+                      <CopyButton code={blockItem.content} />
+                      <SyntaxHighlighter
+                        language="swift"
+                        style={vscDarkPlus}
+                        customStyle={{
+                          marginTop: '1rem',
+                          borderRadius: '8px',
+                          padding: '1rem',
+                          backgroundColor: isDark ? '#2d2d2d' : '#f3f4f6',
+                          position: 'relative',
+                          zIndex: 1,
+                          width: '100%',
+                          boxSizing: 'border-box',
+                        }}
+                        PreTag={CodeBlockContent}
+                      >
+                        {blockItem.content}
+                      </SyntaxHighlighter>
+                    </CodeBlockContainer>
+                  </CodeBlockWrapper>
+                </>
               ) : blockItem.type === 'Markdown' ? (
-                <DetailBlock $isDark={isDark}>
-                  <Label $isDark={isDark}>Markdown:</Label>
+                <>
+                  <BlockLabel $isDark={isDark}>Markdown:</BlockLabel>
                   <MarkdownContent $isDark={isDark}>
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{blockItem.content}</ReactMarkdown>
                   </MarkdownContent>
-                </DetailBlock>
+                </>
               ) : blockItem.type === 'To-Do' ? (
-                <DetailBlock $isDark={isDark}>
-                  <Label $isDark={isDark}>To-Do:</Label>
+                <>
+                  <BlockLabel $isDark={isDark}>To-Do:</BlockLabel>
                   <TodoContent $isDark={isDark}>
                     {(() => {
                       try {
@@ -559,35 +653,35 @@ export default function ResourceDetailPage({ params: paramsPromise }: { params: 
                       return <li>{blockItem.content}</li>;
                     })()}
                   </TodoContent>
-                </DetailBlock>
+                </>
               ) : blockItem.type === 'image' ? (
-                <DetailBlock $isDark={isDark}>
-                  <Label $isDark={isDark}>Image:</Label>
+                <>
+                  <BlockLabel $isDark={isDark}>Image:</BlockLabel>
                   {blockItem.content.startsWith('http') ? (
                     <ImageContent src={blockItem.content} alt="Resource Image" />
                   ) : (
                     <TextContent $isDark={isDark}>Invalid image URL</TextContent>
                   )}
-                </DetailBlock>
+                </>
               ) : blockItem.type === 'Divider' ? (
                 <DividerContent $isDark={isDark} />
               ) : blockItem.type === 'Resource' ? (
-                <DetailBlock $isDark={isDark}>
-                  <Label $isDark={isDark}>Resource:</Label>
+                <>
+                  <BlockLabel $isDark={isDark}>Resource:</BlockLabel>
                   <ResourceContent
                     $isDark={isDark}
                     href={blockItem.content.startsWith('http') ? blockItem.content : `/resource/${blockItem.content}`}
                   >
                     {blockItem.content}
                   </ResourceContent>
-                </DetailBlock>
+                </>
               ) : (
-                <DetailBlock $isDark={isDark}>
-                  <Label $isDark={isDark}>{blockItem.type} (Unsupported):</Label>
+                <>
+                  <BlockLabel $isDark={isDark}>{blockItem.type} (Unsupported):</BlockLabel>
                   <TextContent $isDark={isDark}>{blockItem.content}</TextContent>
-                </DetailBlock>
+                </>
               )}
-            </React.Fragment>
+            </BlockWrapper>
           ))
         )}
       </InnerContent>
