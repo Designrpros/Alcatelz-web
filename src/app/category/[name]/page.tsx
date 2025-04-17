@@ -7,6 +7,17 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { MdArrowBack, MdDescription } from "react-icons/md";
 
+// Define the type for CloudKit records
+interface CloudKitRecord {
+  recordName: string;
+  fields: {
+    title?: { value: string };
+    author?: { value: string };
+    summary?: { value: string };
+    categoryName?: { value: string };
+  };
+}
+
 const CategoryContainer = styled.div<{ $isDark: boolean }>`
   background: ${({ $isDark }) => ($isDark ? "#1a1a1a" : "#ffffff")};
   min-height: 100vh;
@@ -340,11 +351,25 @@ const categoryDescriptions: { [key: string]: string } = {
   Other: "Unique resources that don’t fit elsewhere.",
 };
 
-export default async function CategoryDetailPage({ params }: { params: Promise<{ name: string }> }) {  const router = useRouter();
-  const { name } = await params;
-  const { records, loading, error } = useCloudKitData("CD_ResourceEntity");
-  const [searchText, setSearchText] = useState("");
+export default function CategoryDetailPage({ params }: { params: Promise<{ name: string }> }) {
+  const router = useRouter();
+  const [name, setName] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const { records, loading, error } = useCloudKitData("CD_ResourceEntity") as {
+    records: CloudKitRecord[];
+    loading: boolean;
+    error: string | null;
+  };
+
+  // Resolve the params Promise on the client
+  useEffect(() => {
+    const resolveParams = async () => {
+      const { name } = await params;
+      setName(name);
+    };
+    resolveParams();
+  }, [params]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -356,21 +381,31 @@ export default async function CategoryDetailPage({ params }: { params: Promise<{
   }, []);
 
   useEffect(() => {
-    if (!loading) {
+    if (!loading && name) {
       console.log("Category records loaded:", records.length);
       console.log("Filtering for category:", name);
       console.log("Available categories:", Array.from(new Set(records.map((r) => r.fields.categoryName?.value).filter(Boolean))));
     }
   }, [loading, records, name]);
 
+  if (name === null) {
+    return (
+      <CategoryContainer $isDark={isDark}>
+        <InnerContent>
+          <StatusMessage $isDark={isDark}>Loading category...</StatusMessage>
+        </InnerContent>
+      </CategoryContainer>
+    );
+  }
+
   const filteredResources = searchText
     ? records.filter(
-        (r) =>
+        (r: CloudKitRecord) =>
           (r.fields.categoryName?.value || "").toLowerCase() === name.toLowerCase() &&
           (r.fields.title?.value || "").toLowerCase().includes(searchText.toLowerCase())
       )
     : records.filter(
-        (r) => (r.fields.categoryName?.value || "").toLowerCase() === name.toLowerCase()
+        (r: CloudKitRecord) => (r.fields.categoryName?.value || "").toLowerCase() === name.toLowerCase()
       );
 
   if (loading) {
@@ -424,7 +459,7 @@ export default async function CategoryDetailPage({ params }: { params: Promise<{
               </EmptyMessage>
             </EmptyState>
           ) : (
-            filteredResources.map((resource) => (
+            filteredResources.map((resource: CloudKitRecord) => (
               <StyledLink key={resource.recordName} href={`/resource/${resource.recordName}`}>
                 <ResourceItem $isDark={isDark}>
                   <ResourceIcon $isDark={isDark}>
@@ -438,9 +473,9 @@ export default async function CategoryDetailPage({ params }: { params: Promise<{
                     <ResourceSummary $isDark={isDark}>
                       {resource.fields.summary?.value || "No summary available"}
                     </ResourceSummary>
-                    </ResourceInfo>
-                  </ResourceItem>
-                </StyledLink>
+                  </ResourceInfo>
+                </ResourceItem>
+              </StyledLink>
             ))
           )}
         </ResourceList>
