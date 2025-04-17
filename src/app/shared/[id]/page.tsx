@@ -168,24 +168,29 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
   }, []);
 
   useEffect(() => {
-    async function fetchSharedPage() {
+    async function fetchSharedPageensen() {
       try {
+        console.log('Fetching SharedPage with recordName:', id);
         const container = await configureCloudKit();
+        console.log('Container configured:', container);
         const publicDB = container.publicCloudDatabase;
 
-        // Fetch the SharedPage record with explicit type
+        // Fetch the SharedPage record
         const response = await publicDB.fetchRecords({
           recordType: 'SharedPage',
           recordName: id
         } as { recordType: string; recordName?: string });
 
+        console.log('FetchRecords response:', response);
         if (response.records.length === 0) {
+          console.log('No SharedPage records found for recordName:', id);
           setError('Page not found');
           setLoading(false);
           return;
         }
 
         const pageFields = response.records[0].fields;
+        console.log('Page fields:', pageFields);
         setPageData(pageFields);
 
         // Fetch associated SharedImage records
@@ -199,12 +204,16 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
         };
 
         const imageResponse = await publicDB.performQuery(query);
+        console.log('SharedImage query response:', imageResponse);
         const imageMap: { [key: string]: string } = {};
         imageResponse.records.forEach(record => {
           const imageId = record.recordName;
           const asset = record.fields.imageAsset;
           if (asset && asset.value && asset.value.fileURL) {
             imageMap[imageId] = asset.value.fileURL;
+            console.log(`Image found: ${imageId} -> ${asset.value.fileURL}`);
+          } else {
+            console.log(`No asset found for SharedImage record: ${imageId}`);
           }
         });
         setImages(imageMap);
@@ -216,13 +225,14 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
       }
     }
 
-    fetchSharedPage();
+    fetchSharedPageensen();
   }, [id]);
 
   // Parse the content into blocks
   const parseContent = (content: string | undefined): Block[] => {
     if (!content) return [];
 
+    console.log('Parsing content:', content);
     // Split content by double newlines to separate blocks
     const lines = content.split('\n\n');
     const blocks: Block[] = [];
@@ -250,6 +260,7 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
       }
     });
 
+    console.log('Parsed blocks:', blocks);
     return blocks;
   };
 
