@@ -7,6 +7,11 @@ import { MdArrowBack } from 'react-icons/md';
 import React from 'react';
 import Image from 'next/image';
 import { configureCloudKit } from '@/lib/cloudkit';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import CopyButton from '@/components/CopyButton';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 // Styled components (reused from resource page)
 const ResourceContainer = styled.div<{ $isDark: boolean }>`
@@ -116,10 +121,107 @@ const DetailBlock = styled.div<{ $isDark: boolean }>`
   }
 `;
 
+const Label = styled.span<{ $isDark: boolean }>`
+  font-weight: 500;
+  color: ${({ $isDark }) => ($isDark ? '#cccccc' : '#888888')};
+  margin-right: 0.5rem;
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.85rem;
+  }
+`;
+
 const TextContent = styled.p<{ $isDark: boolean }>`
   font-size: 1rem;
   color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#000000')};
   margin: 0;
+
+  @media (max-width: 1024px) {
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.85rem;
+  }
+`;
+
+const CodeBlockWrapper = styled.div`
+  position: relative;
+  margin-bottom: 0.25rem;
+  width: 100%;
+  box-sizing: border-box;
+`;
+
+const CodeBlockContainer = styled.div`
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+`;
+
+const CodeBlockContent = styled.div`
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+`;
+
+const MarkdownContent = styled.div<{ $isDark: boolean }>`
+  font-size: 1rem;
+  color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#000000')};
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+
+  & > * {
+    margin: 0.25rem 0;
+  }
+
+  code {
+    background: ${({ $isDark }) => ($isDark ? '#1f2937' : '#e5e7eb')};
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+  }
+
+  pre {
+    background: ${({ $isDark }) => ($isDark ? '#1f2937' : '#e5e7eb')};
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+  }
+
+  @media (max-width: 1024px) {
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.85rem;
+  }
+`;
+
+const TodoContent = styled.ul<{ $isDark: boolean }>`
+  font-size: 1rem;
+  color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#000000')};
+  margin: 0;
+  padding-left: 1.5rem;
+  list-style-type: disc;
+
+  li {
+    margin: 0.25rem 0;
+  }
 
   @media (max-width: 1024px) {
     font-size: 0.95rem;
@@ -141,6 +243,12 @@ const ImageContent = styled.img`
   margin-bottom: 0.5rem;
 `;
 
+const DividerContent = styled.hr<{ $isDark: boolean }>`
+  border: 0;
+  border-top: 1px solid ${({ $isDark }) => ($isDark ? '#444444' : '#cccccc')};
+  margin: 0.5rem 0;
+`;
+
 interface Block {
   type: string;
   content?: string;
@@ -157,6 +265,7 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
   const [isDark, setIsDark] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -194,6 +303,19 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
 
         const pageFields = response.records[0].fields;
         console.log('Page fields:', pageFields);
+
+        // Check expiration date
+        if (pageFields.expirationDate && pageFields.expirationDate.value) {
+          const expirationDate = new Date(pageFields.expirationDate.value);
+          const currentDate = new Date();
+          if (currentDate > expirationDate) {
+            console.log('Share link has expired:', expirationDate);
+            setIsExpired(true);
+            setLoading(false);
+            return;
+          }
+        }
+
         setPageData(pageFields);
 
         // Fetch associated SharedImage records, but don't fail if this query fails
@@ -265,7 +387,21 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
       if (!line.trim()) return; // Skip empty lines
 
       if (line.startsWith('New Text Block')) {
-        blocks.push({ type: 'text', content: line });
+        blocks.push({ type: 'Text', content: line });
+      } else if (line.startsWith('To-Do:')) {
+        blocks.push({ type: 'To-Do', content: line.substring(6).trim() }); // Remove "To-Do:" prefix
+      } else if (line.startsWith('Code:')) {
+        blocks.push({ type: 'Code', content: line.substring(5).trim() }); // Remove "Code:" prefix
+      } else if (line.startsWith('Markdown:')) {
+        blocks.push({ type: 'Markdown', content: line.substring(9).trim() }); // Remove "Markdown:" prefix
+      } else if (line.startsWith('Quote:')) {
+        blocks.push({ type: 'Quote', content: line.substring(6).trim() }); // Remove "Quote:" prefix
+      } else if (line.startsWith('Video:')) {
+        blocks.push({ type: 'Video', content: line.substring(6).trim() }); // Remove "Video:" prefix
+      } else if (line.startsWith('Bookmark:')) {
+        blocks.push({ type: 'Bookmark', content: line.substring(9).trim() }); // Remove "Bookmark:" prefix
+      } else if (line.startsWith('----')) {
+        blocks.push({ type: 'Divider' });
       } else if (line.startsWith('[Image: SharedImage:')) {
         // Extract image ID between [Image: SharedImage: and ]
         const match = line.match(/\[Image: SharedImage:([^\]]+)\]/);
@@ -280,7 +416,7 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
         }
       } else if (line.trim()) {
         // Treat any other non-empty line as text
-        blocks.push({ type: 'text', content: line });
+        blocks.push({ type: 'Text', content: line });
       }
     });
 
@@ -292,6 +428,22 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
     return (
       <ResourceContainer $isDark={isDark}>
         <InnerContent>Loading...</InnerContent>
+      </ResourceContainer>
+    );
+  }
+
+  if (isExpired) {
+    return (
+      <ResourceContainer $isDark={isDark}>
+        <InnerContent>
+          <BackButton $isDark={isDark} onClick={() => router.back()}>
+            <MdArrowBack /> Back
+          </BackButton>
+          <Title $isDark={isDark}>Share Link Expired</Title>
+          <TextContent $isDark={isDark}>
+            This shared link has expired. Please request a new link from the content owner.
+          </TextContent>
+        </InnerContent>
       </ResourceContainer>
     );
   }
@@ -315,31 +467,92 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
         <Title $isDark={isDark}>{pageData.title?.value || 'Untitled Page'}</Title>
         <div className="space-y-4">
           {blocks.map((block, index) => (
-            <DetailBlock key={index} $isDark={isDark}>
-              {block.type === 'text' && (
-                <TextContent $isDark={isDark}>{block.content}</TextContent>
-              )}
-              {block.type === 'image' && block.imageId && images[block.imageId] && (
-                <div className="my-4">
-                  <Image
-                    src={images[block.imageId]}
-                    alt="Shared image"
-                    width={500}
-                    height={300}
-                    className="rounded-lg shadow-sm"
-                    onError={(e) => {
-                      console.error('Failed to load image:', block.imageId);
-                      e.currentTarget.style.display = 'none'; // Hide the image on error
+            <React.Fragment key={index}>
+              {block.type === 'Text' ? (
+                <DetailBlock $isDark={isDark}>
+                  <TextContent $isDark={isDark}>{block.content}</TextContent>
+                </DetailBlock>
+              ) : block.type === 'Code' ? (
+                <CodeBlockWrapper>
+                  <CodeBlockContainer>
+                    <CopyButton code={block.content || ''} />
+                    <SyntaxHighlighter
+                      language="javascript"
+                      style={vscDarkPlus}
+                      customStyle={{
+                        marginTop: '1rem',
+                        borderRadius: '4px',
+                        padding: '1rem',
+                        backgroundColor: isDark ? '#1f2937' : '#2d2d2d',
+                        position: 'relative',
+                        zIndex: 1,
+                        width: '100%',
+                        boxSizing: 'border-box',
+                      }}
+                      PreTag={CodeBlockContent}
+                    >
+                      {block.content || ''}
+                    </SyntaxHighlighter>
+                  </CodeBlockContainer>
+                </CodeBlockWrapper>
+              ) : block.type === 'Markdown' ? (
+                <DetailBlock $isDark={isDark}>
+                  <MarkdownContent $isDark={isDark}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{block.content || ''}</ReactMarkdown>
+                  </MarkdownContent>
+                </DetailBlock>
+              ) : block.type === 'To-Do' ? (
+                <DetailBlock $isDark={isDark}>
+                  <TodoContent $isDark={isDark}>
+                    {block.content?.split('\n').map((item: string, idx: number) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </TodoContent>
+                </DetailBlock>
+              ) : block.type === 'Quote' ? (
+                <DetailBlock $isDark={isDark}>
+                  <TextContent $isDark={isDark} style={{ fontStyle: 'italic' }}>
+                    &gt; {block.content}
+                  </TextContent>
+                </DetailBlock>
+              ) : block.type === 'Video' ? (
+                <DetailBlock $isDark={isDark}>
+                  <video controls src={block.content} style={{ maxWidth: '100%', borderRadius: '6px' }} />
+                </DetailBlock>
+              ) : block.type === 'Bookmark' ? (
+                <DetailBlock $isDark={isDark}>
+                  <a
+                    href={block.content}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: isDark ? '#60a5fa' : '#2563eb',
+                      textDecoration: 'none',
                     }}
-                  />
-                </div>
+                    onMouseOver={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+                    onMouseOut={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                  >
+                    {block.content}
+                  </a>
+                </DetailBlock>
+              ) : block.type === 'Divider' ? (
+                <DividerContent $isDark={isDark} />
+              ) : block.type === 'image' && block.imageId && images[block.imageId] ? (
+                <DetailBlock $isDark={isDark}>
+                  <ImageContent src={images[block.imageId]} alt="Shared image" />
+                </DetailBlock>
+              ) : block.type === 'image' && block.path ? (
+                <DetailBlock $isDark={isDark}>
+                  <TextContent $isDark={isDark}>
+                    [Image: {block.path}] <span className="text-sm">(Image not available)</span>
+                  </TextContent>
+                </DetailBlock>
+              ) : (
+                <DetailBlock $isDark={isDark}>
+                  <TextContent $isDark={isDark}>{block.content}</TextContent>
+                </DetailBlock>
               )}
-              {block.type === 'image' && block.path && (
-                <TextContent $isDark={isDark}>
-                  [Image: {block.path}] <span className="text-sm">(Image not available)</span>
-                </TextContent>
-              )}
-            </DetailBlock>
+            </React.Fragment>
           ))}
         </div>
       </InnerContent>
