@@ -1,4 +1,3 @@
-// src/types/cloudkit.d.ts
 export interface ApiTokenAuth {
   apiToken: string;
   persist?: boolean;
@@ -35,6 +34,9 @@ export interface Container {
   privateCloudDatabase?: Database;
   setUpAuth(): Promise<{ isLoggedIn: boolean }>;
   signIn(): Promise<void>;
+  // Add internal properties for logging
+  _containerIdentifier: string;
+  _environment: 'development' | 'production';
 }
 
 declare global {

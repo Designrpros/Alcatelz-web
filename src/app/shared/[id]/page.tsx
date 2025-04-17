@@ -168,11 +168,11 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
   }, []);
 
   useEffect(() => {
-    async function fetchSharedPageensen() {
+    async function fetchSharedPage() {
       try {
         console.log('Fetching SharedPage with recordName:', id);
         const container = await configureCloudKit();
-        console.log('Container configured:', container);
+        console.log('Container configured successfully');
         const publicDB = container.publicCloudDatabase;
 
         // Fetch the SharedPage record
@@ -181,7 +181,10 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
           recordName: id
         } as { recordType: string; recordName?: string });
 
-        console.log('FetchRecords response:', response);
+        console.log('FetchRecords response:', {
+          records: response.records,
+          hasRecords: response.records.length > 0,
+        });
         if (response.records.length === 0) {
           console.log('No SharedPage records found for recordName:', id);
           setError('Page not found');
@@ -204,7 +207,10 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
         };
 
         const imageResponse = await publicDB.performQuery(query);
-        console.log('SharedImage query response:', imageResponse);
+        console.log('SharedImage query response:', {
+          records: imageResponse.records,
+          hasRecords: imageResponse.records.length > 0,
+        });
         const imageMap: { [key: string]: string } = {};
         imageResponse.records.forEach(record => {
           const imageId = record.recordName;
@@ -219,13 +225,19 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
         setImages(imageMap);
       } catch (err) {
         console.error('Error fetching shared page:', err);
+        if (err instanceof Error) {
+          console.error('Error details:', {
+            message: err.message,
+            stack: err.stack,
+          });
+        }
         setError('Failed to load page: ' + (err instanceof Error ? err.message : String(err)));
       } finally {
         setLoading(false);
       }
     }
 
-    fetchSharedPageensen();
+    fetchSharedPage();
   }, [id]);
 
   // Parse the content into blocks
