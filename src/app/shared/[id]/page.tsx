@@ -374,7 +374,7 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
     fetchSharedPage();
   }, [id]);
 
-  // Parse the content into blocks
+  // Parse the content into blocks without using regex
   const parseContent = (content: string | undefined): Block[] => {
     if (!content) return [];
 
@@ -386,6 +386,7 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
     lines.forEach(line => {
       if (!line.trim()) return; // Skip empty lines
 
+      // Check for block indicators
       if (line.startsWith('New Text Block')) {
         blocks.push({ type: 'Text', content: line });
       } else if (line.startsWith('To-Do:')) {
@@ -403,16 +404,24 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
       } else if (line.startsWith('----')) {
         blocks.push({ type: 'Divider' });
       } else if (line.startsWith('[Image: SharedImage:')) {
-        // Extract image ID between [Image: SharedImage: and ]
-        const match = line.match(/\[Image: SharedImage:([^\]]+)\]/);
-        if (match && match[1]) {
-          blocks.push({ type: 'image', imageId: match[1] });
+        // Manually extract imageId without regex
+        const startIndex = '[Image: SharedImage:'.length;
+        const endIndex = line.indexOf(']', startIndex);
+        if (endIndex !== -1) {
+          const imageId = line.substring(startIndex, endIndex);
+          blocks.push({ type: 'image', imageId });
+        } else {
+          blocks.push({ type: 'Text', content: line }); // Fallback to text if parsing fails
         }
       } else if (line.startsWith('[Image:')) {
-        // Handle legacy local paths
-        const match = line.match(/\[Image: ([^\]]+)\]/);
-        if (match && match[1]) {
-          blocks.push({ type: 'image', path: match[1] });
+        // Manually extract path without regex
+        const startIndex = '[Image:'.length;
+        const endIndex = line.indexOf(']', startIndex);
+        if (endIndex !== -1) {
+          const path = line.substring(startIndex, endIndex).trim();
+          blocks.push({ type: 'image', path });
+        } else {
+          blocks.push({ type: 'Text', content: line }); // Fallback to text if parsing fails
         }
       } else if (line.trim()) {
         // Treat any other non-empty line as text
@@ -512,7 +521,7 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
               ) : block.type === 'Quote' ? (
                 <DetailBlock $isDark={isDark}>
                   <TextContent $isDark={isDark} style={{ fontStyle: 'italic' }}>
-                    &gt; {block.content}
+                    {block.content}
                   </TextContent>
                 </DetailBlock>
               ) : block.type === 'Video' ? (
