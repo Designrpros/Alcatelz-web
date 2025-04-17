@@ -196,33 +196,45 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
         console.log('Page fields:', pageFields);
         setPageData(pageFields);
 
-        // Fetch associated SharedImage records
-        const query = {
-          recordType: 'SharedImage',
-          filterBy: [{
-            fieldName: 'sharedPageId',
-            comparator: 'EQUALS',
-            fieldValue: { value: id }
-          }]
-        };
+        // Fetch associated SharedImage records, but don't fail if this query fails
+        try {
+          const query = {
+            recordType: 'SharedImage',
+            filterBy: [{
+              fieldName: 'sharedPageId',
+              comparator: 'EQUALS',
+              fieldValue: { value: id }
+            }]
+          };
 
-        const imageResponse = await publicDB.performQuery(query);
-        console.log('SharedImage query response:', {
-          records: imageResponse.records,
-          hasRecords: imageResponse.records.length > 0,
-        });
-        const imageMap: { [key: string]: string } = {};
-        imageResponse.records.forEach(record => {
-          const imageId = record.recordName;
-          const asset = record.fields.imageAsset;
-          if (asset && asset.value && asset.value.fileURL) {
-            imageMap[imageId] = asset.value.fileURL;
-            console.log(`Image found: ${imageId} -> ${asset.value.fileURL}`);
-          } else {
-            console.log(`No asset found for SharedImage record: ${imageId}`);
+          const imageResponse = await publicDB.performQuery(query);
+          console.log('SharedImage query response:', {
+            records: imageResponse.records,
+            hasRecords: imageResponse.records.length > 0,
+          });
+          const imageMap: { [key: string]: string } = {};
+          imageResponse.records.forEach(record => {
+            const imageId = record.recordName;
+            const asset = record.fields.imageAsset;
+            if (asset && asset.value && asset.value.fileURL) {
+              imageMap[imageId] = asset.value.fileURL;
+              console.log(`Image found: ${imageId} -> ${asset.value.fileURL}`);
+            } else {
+              console.log(`No asset found for SharedImage record: ${imageId}`);
+            }
+          });
+          setImages(imageMap);
+        } catch (imageErr) {
+          console.error('Error fetching SharedImage records:', imageErr);
+          if (imageErr instanceof Error) {
+            console.error('SharedImage error details:', {
+              message: imageErr.message,
+              stack: imageErr.stack,
+            });
           }
-        });
-        setImages(imageMap);
+          // Continue rendering the page even if SharedImage query fails
+          setImages({});
+        }
       } catch (err) {
         console.error('Error fetching shared page:', err);
         if (err instanceof Error) {
