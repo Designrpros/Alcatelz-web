@@ -13,151 +13,123 @@ import CopyButton from '@/components/CopyButton';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-// Styled components (reused from resource page)
-const ResourceContainer = styled.div<{ $isDark: boolean }>`
+// Styled components with a Medium-like design
+const PageContainer = styled.div<{ $isDark: boolean }>`
   background: ${({ $isDark }) => ($isDark ? '#1a1a1a' : '#ffffff')};
-  padding: 1rem 0;
-  width: 100%;
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  transition: background 0.3s ease;
+  padding: 3rem 1rem;
+  font-family: 'Georgia', serif;
+  color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
+  transition: background 0.3s ease, color 0.3s ease;
 
   @media (max-width: 768px) {
-    padding: 0.75rem 0;
+    padding: 2rem 0.75rem;
   }
 `;
 
 const InnerContent = styled.div`
-  max-width: 1440px;
+  max-width: 800px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 0.5rem;
   box-sizing: border-box;
-
-  @media (max-width: 1024px) {
-    padding: 0 0.5rem;
-  }
-
-  @media (max-width: 768px) {
-    padding: 0 0.25rem;
-  }
-
-  @media (max-width: 480px) {
-    padding: 0 0.25rem;
-  }
 `;
 
 const BackButton = styled.button<{ $isDark: boolean }>`
   background: none;
   border: none;
-  color: ${({ $isDark }) => ($isDark ? '#cccccc' : '#666666')};
+  color: ${({ $isDark }) => ($isDark ? '#9ca3af' : '#6b7280')};
   font-size: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1rem;
-  transition: color 0.2s ease;
+  margin-bottom: 2rem;
+  transition: color 0.3s ease;
 
   &:hover {
-    color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#333333')};
+    color: #9d845d;
   }
 
   @media (max-width: 768px) {
     font-size: 0.9rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
   }
 
   @media (max-width: 480px) {
     font-size: 0.85rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
   }
 `;
 
 const Title = styled.h1<{ $isDark: boolean }>`
-  font-size: 2.25rem;
-  font-weight: 800;
-  color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#000000')};
-  margin-bottom: 0.5rem;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#1f2937')};
+  margin-bottom: 2rem;
+  line-height: 1.2;
 
   @media (max-width: 1024px) {
+    font-size: 2.25rem;
+  }
+
+  @media (max-width: 768px) {
     font-size: 2rem;
+    margin-bottom: 1.5rem;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 480px) {
     font-size: 1.75rem;
-    margin-bottom: 0.4rem;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 1.5rem;
-    margin-bottom: 0.3rem;
+    margin-bottom: 1rem;
   }
 `;
 
-const DetailBlock = styled.div<{ $isDark: boolean }>`
-  background: ${({ $isDark }) => ($isDark ? '#2d2d2d' : '#f5f5f5')};
-  border-radius: 6px;
-  padding: 0.5rem;
-  margin-bottom: 0.25rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: background 0.2s ease;
-
-  @media (max-width: 1024px) {
-    padding: 0.4rem;
-    gap: 0.4rem;
-  }
+const BlockWrapper = styled.div`
+  margin-bottom: 2rem;
 
   @media (max-width: 768px) {
-    padding: 0.4rem;
-    gap: 0.3rem;
-  }
-
-  @media (max-width: 480px) {
-    padding: 0.3rem;
-    gap: 0.25rem;
+    margin-bottom: 1.5rem;
   }
 `;
 
-const Label = styled.span<{ $isDark: boolean }>`
+const BlockLabel = styled.div<{ $isDark: boolean }>`
+  font-size: 0.9rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-weight: 500;
-  color: ${({ $isDark }) => ($isDark ? '#cccccc' : '#888888')};
-  margin-right: 0.5rem;
+  color: ${({ $isDark }) => ($isDark ? '#9ca3af' : '#6b7280')};
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 
   @media (max-width: 768px) {
-    font-size: 0.9rem;
-  }
-
-  @media (max-width: 480px) {
     font-size: 0.85rem;
   }
 `;
 
-const TextContent = styled.p<{ $isDark: boolean }>`
-  font-size: 1rem;
-  color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#000000')};
+const TextContent = styled.div<{ $isDark: boolean }>`
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
   margin: 0;
 
   @media (max-width: 1024px) {
-    font-size: 0.95rem;
+    font-size: 1.05rem;
   }
 
   @media (max-width: 768px) {
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
 
   @media (max-width: 480px) {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
   }
 `;
 
 const CodeBlockWrapper = styled.div`
   position: relative;
-  margin-bottom: 0.25rem;
-  width: 100%;
-  box-sizing: border-box;
+  margin-bottom: 2rem;
+  border-radius: 8px;
+  overflow: hidden;
 `;
 
 const CodeBlockContainer = styled.div`
@@ -176,84 +148,134 @@ const CodeBlockContent = styled.div`
 `;
 
 const MarkdownContent = styled.div<{ $isDark: boolean }>`
-  font-size: 1rem;
-  color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#000000')};
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
   margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
 
   & > * {
-    margin: 0.25rem 0;
+    margin: 0.5rem 0;
   }
 
-  code {
-    background: ${({ $isDark }) => ($isDark ? '#1f2937' : '#e5e7eb')};
-    padding: 0.2rem 0.4rem;
-    border-radius: 4px;
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#1f2937')};
+    margin: 1rem 0 0.5rem;
   }
 
-  pre {
-    background: ${({ $isDark }) => ($isDark ? '#1f2937' : '#e5e7eb')};
-    padding: 1rem;
-    border-radius: 4px;
-    overflow-x: auto;
+  p {
+    margin: 0.5rem 0;
   }
 
-  @media (max-width: 1024px) {
-    font-size: 0.95rem;
+  ul, ol {
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
   }
-
-  @media (max-width: 768px) {
-    font-size: 0.9rem;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 0.85rem;
-  }
-`;
-
-const TodoContent = styled.ul<{ $isDark: boolean }>`
-  font-size: 1rem;
-  color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#000000')};
-  margin: 0;
-  padding-left: 1.5rem;
-  list-style-type: disc;
 
   li {
     margin: 0.25rem 0;
   }
 
-  @media (max-width: 1024px) {
+  code {
+    background: ${({ $isDark }) => ($isDark ? '#2d2d2d' : '#f3f4f6')};
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'Menlo', monospace;
     font-size: 0.95rem;
   }
 
+  pre {
+    background: ${({ $isDark }) => ($isDark ? '#2d2d2d' : '#f3f4f6')};
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+
+  a {
+    color: #9d845d;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  a:hover {
+    color: #7b6a47;
+    text-decoration: underline;
+  }
+
+  @media (max-width: 1024px) {
+    font-size: 1.05rem;
+  }
+
   @media (max-width: 768px) {
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
 
   @media (max-width: 480px) {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
+  }
+`;
+
+const TodoContent = styled.ul<{ $isDark: boolean }>`
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
+  margin: 0;
+  padding-left: 1.5rem;
+  list-style-type: disc;
+
+  li {
+    margin: 0.5rem 0;
+  }
+
+  @media (max-width: 1024px) {
+    font-size: 1.05rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.95rem;
   }
 `;
 
 const ImageContent = styled.img`
   max-width: 100%;
   height: auto;
-  border-radius: 6px;
-  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
 
 const DividerContent = styled.hr<{ $isDark: boolean }>`
   border: 0;
-  border-top: 1px solid ${({ $isDark }) => ($isDark ? '#444444' : '#cccccc')};
-  margin: 0.5rem 0;
+  border-top: 1px solid ${({ $isDark }) => ($isDark ? '#444444' : '#e5e7eb')};
+  margin: 2rem 0;
+`;
+
+const StatusMessage = styled.div<{ $isDark: boolean }>`
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
+  text-align: center;
+  padding: 2rem;
+  background: ${({ $isDark }) => ($isDark ? '#2d2d2d' : '#f3f4f6')};
+  border-radius: 8px;
+  margin: 2rem 0;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
 `;
 
 interface Block {
+  id: string;
   type: string;
-  content?: string;
-  imageId?: string;
-  path?: string;
+  content: string;
+  order: number;
 }
 
 export default function SharedPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
@@ -374,197 +396,190 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
     fetchSharedPage();
   }, [id]);
 
-  // Parse the content into blocks without using regex
-  const parseContent = (content: string | undefined): Block[] => {
-    if (!content) return [];
-
-    console.log('Parsing content:', content);
-    // Split content by double newlines to separate blocks
-    const lines = content.split('\n\n');
-    const blocks: Block[] = [];
-
-    lines.forEach(line => {
-      if (!line.trim()) return; // Skip empty lines
-
-      // Check for block indicators
-      if (line.startsWith('New Text Block')) {
-        blocks.push({ type: 'Text', content: line });
-      } else if (line.startsWith('To-Do:')) {
-        blocks.push({ type: 'To-Do', content: line.substring(6).trim() }); // Remove "To-Do:" prefix
-      } else if (line.startsWith('Code:')) {
-        blocks.push({ type: 'Code', content: line.substring(5).trim() }); // Remove "Code:" prefix
-      } else if (line.startsWith('Markdown:')) {
-        blocks.push({ type: 'Markdown', content: line.substring(9).trim() }); // Remove "Markdown:" prefix
-      } else if (line.startsWith('Quote:')) {
-        blocks.push({ type: 'Quote', content: line.substring(6).trim() }); // Remove "Quote:" prefix
-      } else if (line.startsWith('Video:')) {
-        blocks.push({ type: 'Video', content: line.substring(6).trim() }); // Remove "Video:" prefix
-      } else if (line.startsWith('Bookmark:')) {
-        blocks.push({ type: 'Bookmark', content: line.substring(9).trim() }); // Remove "Bookmark:" prefix
-      } else if (line.startsWith('----')) {
-        blocks.push({ type: 'Divider' });
-      } else if (line.startsWith('[Image: SharedImage:')) {
-        // Manually extract imageId without regex
-        const startIndex = '[Image: SharedImage:'.length;
-        const endIndex = line.indexOf(']', startIndex);
-        if (endIndex !== -1) {
-          const imageId = line.substring(startIndex, endIndex);
-          blocks.push({ type: 'image', imageId });
-        } else {
-          blocks.push({ type: 'Text', content: line }); // Fallback to text if parsing fails
-        }
-      } else if (line.startsWith('[Image:')) {
-        // Manually extract path without regex
-        const startIndex = '[Image:'.length;
-        const endIndex = line.indexOf(']', startIndex);
-        if (endIndex !== -1) {
-          const path = line.substring(startIndex, endIndex).trim();
-          blocks.push({ type: 'image', path });
-        } else {
-          blocks.push({ type: 'Text', content: line }); // Fallback to text if parsing fails
-        }
-      } else if (line.trim()) {
-        // Treat any other non-empty line as text
-        blocks.push({ type: 'Text', content: line });
-      }
-    });
-
-    console.log('Parsed blocks:', blocks);
-    return blocks;
-  };
+  // Parse the content as a JSON array of blocks
+  let blocks: Block[] = [];
+  try {
+    const contentValue = pageData?.content?.value;
+    if (contentValue && contentValue !== '[]') {
+      blocks = JSON.parse(contentValue) as Block[];
+      blocks.sort((a, b) => a.order - b.order);
+      console.log('Parsed blocks for shared page:', blocks);
+    }
+  } catch (e) {
+    console.error('Failed to parse content JSON:', e);
+    blocks = [];
+  }
 
   if (loading) {
     return (
-      <ResourceContainer $isDark={isDark}>
-        <InnerContent>Loading...</InnerContent>
-      </ResourceContainer>
+      <PageContainer $isDark={isDark}>
+        <InnerContent>
+          <StatusMessage $isDark={isDark}>Loading...</StatusMessage>
+        </InnerContent>
+      </PageContainer>
     );
   }
 
   if (isExpired) {
     return (
-      <ResourceContainer $isDark={isDark}>
+      <PageContainer $isDark={isDark}>
         <InnerContent>
           <BackButton $isDark={isDark} onClick={() => router.back()}>
             <MdArrowBack /> Back
           </BackButton>
           <Title $isDark={isDark}>Share Link Expired</Title>
-          <TextContent $isDark={isDark}>
+          <StatusMessage $isDark={isDark}>
             This shared link has expired. Please request a new link from the content owner.
-          </TextContent>
+          </StatusMessage>
         </InnerContent>
-      </ResourceContainer>
+      </PageContainer>
     );
   }
 
   if (error || !pageData) {
     return (
-      <ResourceContainer $isDark={isDark}>
-        <InnerContent>Error loading shared page or page not found.</InnerContent>
-      </ResourceContainer>
+      <PageContainer $isDark={isDark}>
+        <InnerContent>
+          <StatusMessage $isDark={isDark}>Error loading shared page or page not found.</StatusMessage>
+        </InnerContent>
+      </PageContainer>
     );
   }
 
-  const blocks = parseContent(pageData.content?.value);
-
   return (
-    <ResourceContainer $isDark={isDark}>
+    <PageContainer $isDark={isDark}>
       <InnerContent>
         <BackButton $isDark={isDark} onClick={() => router.back()}>
           <MdArrowBack /> Back
         </BackButton>
         <Title $isDark={isDark}>{pageData.title?.value || 'Untitled Page'}</Title>
-        <div className="space-y-4">
-          {blocks.map((block, index) => (
-            <React.Fragment key={index}>
-              {block.type === 'Text' ? (
-                <DetailBlock $isDark={isDark}>
-                  <TextContent $isDark={isDark}>{block.content}</TextContent>
-                </DetailBlock>
-              ) : block.type === 'Code' ? (
-                <CodeBlockWrapper>
-                  <CodeBlockContainer>
-                    <CopyButton code={block.content || ''} />
-                    <SyntaxHighlighter
-                      language="javascript"
-                      style={vscDarkPlus}
-                      customStyle={{
-                        marginTop: '1rem',
-                        borderRadius: '4px',
-                        padding: '1rem',
-                        backgroundColor: isDark ? '#1f2937' : '#2d2d2d',
-                        position: 'relative',
-                        zIndex: 1,
-                        width: '100%',
-                        boxSizing: 'border-box',
-                      }}
-                      PreTag={CodeBlockContent}
-                    >
-                      {block.content || ''}
-                    </SyntaxHighlighter>
-                  </CodeBlockContainer>
-                </CodeBlockWrapper>
-              ) : block.type === 'Markdown' ? (
-                <DetailBlock $isDark={isDark}>
+        {blocks.length === 0 ? (
+          <StatusMessage $isDark={isDark}>No content available for this page.</StatusMessage>
+        ) : (
+          blocks.map((blockItem) => (
+            <BlockWrapper key={blockItem.id}>
+              {blockItem.type === 'Text' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>Text:</BlockLabel>
+                  <TextContent $isDark={isDark}>{blockItem.content}</TextContent>
+                </>
+              ) : blockItem.type === 'Code' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>Code:</BlockLabel>
+                  <CodeBlockWrapper>
+                    <CodeBlockContainer>
+                      <CopyButton code={blockItem.content} />
+                      <SyntaxHighlighter
+                        language="javascript"
+                        style={vscDarkPlus}
+                        customStyle={{
+                          marginTop: '1rem',
+                          borderRadius: '8px',
+                          padding: '1rem',
+                          backgroundColor: isDark ? '#2d2d2d' : '#f3f4f6',
+                          position: 'relative',
+                          zIndex: 1,
+                          width: '100%',
+                          boxSizing: 'border-box',
+                        }}
+                        PreTag={CodeBlockContent}
+                      >
+                        {blockItem.content}
+                      </SyntaxHighlighter>
+                    </CodeBlockContainer>
+                  </CodeBlockWrapper>
+                </>
+              ) : blockItem.type === 'Markdown' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>Markdown:</BlockLabel>
                   <MarkdownContent $isDark={isDark}>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{block.content || ''}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{blockItem.content}</ReactMarkdown>
                   </MarkdownContent>
-                </DetailBlock>
-              ) : block.type === 'To-Do' ? (
-                <DetailBlock $isDark={isDark}>
+                </>
+              ) : blockItem.type === 'To-Do' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>To-Do:</BlockLabel>
                   <TodoContent $isDark={isDark}>
-                    {block.content?.split('\n').map((item: string, idx: number) => (
+                    {blockItem.content.split('\n').map((item: string, idx: number) => (
                       <li key={idx}>{item}</li>
                     ))}
                   </TodoContent>
-                </DetailBlock>
-              ) : block.type === 'Quote' ? (
-                <DetailBlock $isDark={isDark}>
-                  <TextContent $isDark={isDark} style={{ fontStyle: 'italic' }}>
-                    {block.content}
+                </>
+              ) : blockItem.type === 'Quote' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>Quote:</BlockLabel>
+                  <TextContent $isDark={isDark} style={{ fontStyle: 'italic', borderLeft: '4px solid #9d845d', paddingLeft: '1rem' }}>
+                    {blockItem.content}
                   </TextContent>
-                </DetailBlock>
-              ) : block.type === 'Video' ? (
-                <DetailBlock $isDark={isDark}>
-                  <video controls src={block.content} style={{ maxWidth: '100%', borderRadius: '6px' }} />
-                </DetailBlock>
-              ) : block.type === 'Bookmark' ? (
-                <DetailBlock $isDark={isDark}>
+                </>
+              ) : blockItem.type === 'Video' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>Video:</BlockLabel>
+                  <video controls src={blockItem.content} style={{ maxWidth: '100%', borderRadius: '8px', margin: '1rem 0' }} />
+                </>
+              ) : blockItem.type === 'Bookmark' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>Bookmark:</BlockLabel>
                   <a
-                    href={block.content}
+                    href={blockItem.content}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
-                      color: isDark ? '#60a5fa' : '#2563eb',
+                      color: '#9d845d',
                       textDecoration: 'none',
+                      fontSize: '1.1rem',
+                      display: 'inline-block',
+                      margin: '0.5rem 0',
                     }}
                     onMouseOver={(e) => (e.currentTarget.style.textDecoration = 'underline')}
                     onMouseOut={(e) => (e.currentTarget.style.textDecoration = 'none')}
                   >
-                    {block.content}
+                    {blockItem.content}
                   </a>
-                </DetailBlock>
-              ) : block.type === 'Divider' ? (
+                </>
+              ) : blockItem.type === 'Divider' ? (
                 <DividerContent $isDark={isDark} />
-              ) : block.type === 'image' && block.imageId && images[block.imageId] ? (
-                <DetailBlock $isDark={isDark}>
-                  <ImageContent src={images[block.imageId]} alt="Shared image" />
-                </DetailBlock>
-              ) : block.type === 'image' && block.path ? (
-                <DetailBlock $isDark={isDark}>
+              ) : blockItem.type === 'image' && blockItem.content.startsWith('[Image: SharedImage:') ? (
+                (() => {
+                  const startIndex = '[Image: SharedImage:'.length;
+                  const endIndex = blockItem.content.indexOf(']', startIndex);
+                  if (endIndex !== -1) {
+                    const imageId = blockItem.content.substring(startIndex, endIndex);
+                    if (images[imageId]) {
+                      return (
+                        <>
+                          <BlockLabel $isDark={isDark}>Image:</BlockLabel>
+                          <ImageContent src={images[imageId]} alt="Shared image" />
+                        </>
+                      );
+                    }
+                  }
+                  return (
+                    <>
+                      <BlockLabel $isDark={isDark}>Image:</BlockLabel>
+                      <TextContent $isDark={isDark}>
+                        Image not available <span className="text-sm">({blockItem.content})</span>
+                      </TextContent>
+                    </>
+                  );
+                })()
+              ) : blockItem.type === 'image' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>Image:</BlockLabel>
                   <TextContent $isDark={isDark}>
-                    [Image: {block.path}] <span className="text-sm">(Image not available)</span>
+                    Image not available <span className="text-sm">({blockItem.content})</span>
                   </TextContent>
-                </DetailBlock>
+                </>
               ) : (
-                <DetailBlock $isDark={isDark}>
-                  <TextContent $isDark={isDark}>{block.content}</TextContent>
-                </DetailBlock>
+                <>
+                  <BlockLabel $isDark={isDark}>{blockItem.type} (Unsupported):</BlockLabel>
+                  <TextContent $isDark={isDark}>{blockItem.content}</TextContent>
+                </>
               )}
-            </React.Fragment>
-          ))}
-        </div>
+            </BlockWrapper>
+          ))
+        )}
       </InnerContent>
-    </ResourceContainer>
+    </PageContainer>
   );
 }
