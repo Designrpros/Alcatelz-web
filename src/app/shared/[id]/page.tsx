@@ -237,7 +237,7 @@ const TodoContent = styled.ul<{ $isDark: boolean }>`
   }
 `;
 
-const TodoItem = styled.li<{ $isDark: boolean }>`
+const TodoItem = styled.li<{ $isDark: boolean; $isCompleted: boolean }>`
   display: flex;
   align-items: center;
   margin: 0.5rem 0;
@@ -245,7 +245,7 @@ const TodoItem = styled.li<{ $isDark: boolean }>`
   position: relative;
 
   &:before {
-    content: '';
+    content: ${({ $isCompleted }) => ($isCompleted ? '"\\2713"' : '""')};
     position: absolute;
     left: 0;
     width: 1rem;
@@ -253,6 +253,11 @@ const TodoItem = styled.li<{ $isDark: boolean }>`
     border: 2px solid ${({ $isDark }) => ($isDark ? '#9ca3af' : '#6b7280')};
     border-radius: 3px;
     background: ${({ $isDark }) => ($isDark ? '#2d2d2d' : '#ffffff')};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: ${({ $isDark, $isCompleted }) => ($isCompleted ? ($isDark ? '#ffffff' : '#1f2937') : 'transparent')};
   }
 `;
 
@@ -368,6 +373,12 @@ interface Block {
   type: string;
   content: string;
   order: number;
+}
+
+interface TodoItemData {
+  id: string;
+  isCompleted: boolean;
+  text: string;
 }
 
 export default function SharedPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
@@ -592,14 +603,27 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
                 <>
                   <BlockLabel $isDark={isDark}>To-Do:</BlockLabel>
                   <TodoContent $isDark={isDark}>
-                    {blockItem.content
-                      .split('\n')
-                      .filter((item) => item.trim() !== '')
-                      .map((item: string, idx: number) => (
-                        <TodoItem $isDark={isDark} key={idx}>
-                          {item}
-                        </TodoItem>
-                      ))}
+                    {(() => {
+                      try {
+                        const todoItems = JSON.parse(blockItem.content) as TodoItemData[];
+                        return todoItems.map((item) => (
+                          <TodoItem
+                            $isDark={isDark}
+                            $isCompleted={item.isCompleted}
+                            key={item.id}
+                          >
+                            {item.text}
+                          </TodoItem>
+                        ));
+                      } catch (e) {
+                        console.error('Failed to parse To-Do JSON:', e);
+                        return (
+                          <TextContent $isDark={isDark}>
+                            Invalid to-do data
+                          </TextContent>
+                        );
+                      }
+                    })()}
                   </TodoContent>
                 </>
               ) : blockItem.type === 'Quote' ? (
@@ -637,42 +661,39 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
               ) : blockItem.type === 'Divider' ? (
                 <DividerContent $isDark={isDark} />
               ) : blockItem.type === 'image' ? (
-                (() => {
-                  if (blockItem.content.startsWith('[Image: SharedImage:')) {
-                    const startIndex = '[Image: SharedImage:'.length;
-                    const endIndex = blockItem.content.indexOf(']', startIndex);
-                    if (endIndex !== -1) {
-                      const imageId = blockItem.content.substring(startIndex, endIndex);
-                      if (images[imageId]) {
-                        return (
-                          <>
-                            <BlockLabel $isDark={isDark}>Image:</BlockLabel>
-                            <ImageContent src={images[imageId]} alt="Shared image" />
-                          </>
-                        );
+                <>
+                  <BlockLabel $isDark={isDark}>Image:</BlockLabel>
+                  {(() => {
+                    if (blockItem.content.startsWith('[Image: SharedImage:')) {
+                      const startIndex = '[Image: SharedImage:'.length;
+                      const endIndex = blockItem.content.indexOf(']', startIndex);
+                      if (endIndex !== -1) {
+                        const imageId = blockItem.content.substring(startIndex, endIndex);
+                        if (images[imageId]) {
+                          return <ImageContent src={images[imageId]} alt="Shared image" />;
+                        } else {
+                          console.warn(`Image not found for imageId: ${imageId}`);
+                          return <TextContent $isDark={isDark}>Image not available</TextContent>;
+                        }
                       }
                     }
-                  }
-                  return (
-                    <>
-                      <BlockLabel $isDark={isDark}>Image:</BlockLabel>
-                      <TextContent $isDark={isDark}>Image not available</TextContent>
-                    </>
-                  );
-                })()
+                    console.warn(`Invalid image content: ${blockItem.content}`);
+                    return <TextContent $isDark={isDark}>Image not available</TextContent>;
+                  })()}
+                </>
               ) : blockItem.type === 'Resource' ? (
-                (() => {
-                  try {
-                    const resourceData = JSON.parse(blockItem.content) as {
-                      title?: string;
-                      author?: string;
-                      summary?: string;
-                      content?: string;
-                      category?: string;
-                    };
-                    return (
-                      <>
-                        <BlockLabel $isDark={isDark}>Resource:</BlockLabel>
+                <>
+                  <BlockLabel $isDark={isDark}>Resource:</BlockLabel>
+                  {(() => {
+                    try {
+                      const resourceData = JSON.parse(blockItem.content) as {
+                        title?: string;
+                        author?: string;
+                        summary?: string;
+                        content?: string;
+                        category?: string;
+                      };
+                      return (
                         <ResourceContent $isDark={isDark}>
                           <h3>{resourceData.title || 'Untitled Resource'}</h3>
                           {resourceData.author && (
@@ -696,18 +717,13 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
                             </p>
                           )}
                         </ResourceContent>
-                      </>
-                    );
-                  } catch (e) {
-                    console.error('Failed to parse Resource JSON:', e);
-                    return (
-                      <>
-                        <BlockLabel $isDark={isDark}>Resource (Invalid):</BlockLabel>
-                        <TextContent $isDark={isDark}>Invalid resource data</TextContent>
-                      </>
-                    );
-                  }
-                })()
+                      );
+                    } catch (e) {
+                      console.error('Failed to parse Resource JSON:', e);
+                      return <TextContent $isDark={isDark}>Invalid resource data</TextContent>;
+                    }
+                  })()}
+                </>
               ) : blockItem.type === 'Table' ? (
                 <>
                   <BlockLabel $isDark={isDark}>Table:</BlockLabel>
