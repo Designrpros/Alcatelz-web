@@ -111,7 +111,7 @@ const TextContent = styled.div<{ $isDark: boolean }>`
   line-height: 1.8;
   color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
   margin: 0;
-  white-space: pre-wrap; /* Preserve newlines and wrap text */
+  white-space: pre-wrap;
 
   @media (max-width: 1024px) {
     font-size: 1.05rem;
@@ -207,7 +207,7 @@ const MarkdownContent = styled.div<{ $isDark: boolean }>`
     font-size: 1.05rem;
   }
 
-  @media (max-width: 768px) {
+  @media ( planters: 768px) {
     font-size: 1rem;
   }
 
@@ -226,6 +226,82 @@ const TodoContent = styled.ul<{ $isDark: boolean }>`
 
   li {
     margin: 0.5rem 0;
+  }
+
+  @media (max-width: 1024px) {
+    font-size: 1.05rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.95rem;
+  }
+`;
+
+const ResourceContent = styled.div<{ $isDark: boolean }>`
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
+  margin: 0;
+  padding: 1rem;
+  background: ${({ $isDark }) => ($isDark ? '#2d2d2d' : '#f3f4f6')};
+  border-radius: 8px;
+
+  h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#1f2937')};
+    margin: 0 0 0.5rem;
+  }
+
+  p {
+    margin: 0.5rem 0;
+  }
+
+  .label {
+    font-weight: 500;
+    color: ${({ $isDark }) => ($isDark ? '#9ca3af' : '#6b7280')};
+    margin-right: 0.5rem;
+  }
+
+  @media (max-width: 1024px) {
+    font-size: 1.05rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    padding: 0.75rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.95rem;
+  }
+`;
+
+const TableContent = styled.div<{ $isDark: boolean }>`
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
+  margin: 0;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.5rem 0;
+  }
+
+  th, td {
+    border: 1px solid ${({ $isDark }) => ($isDark ? '#444444' : '#e5e7eb')};
+    padding: 0.5rem;
+    text-align: left;
+  }
+
+  th {
+    background: ${({ $isDark }) => ($isDark ? '#2d2d2d' : '#f3f4f6')};
+    font-weight: 600;
   }
 
   @media (max-width: 1024px) {
@@ -477,7 +553,7 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
                           marginTop: '1rem',
                           borderRadius: '8px',
                           padding: '1rem',
-                          backgroundColor: isDark ? '#2d2d2d' : '#f3f4f6',
+                          backgroundColor: '#1e1e1e',
                           position: 'relative',
                           zIndex: 1,
                           width: '100%',
@@ -571,10 +647,67 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
                     Image not available <span className="text-sm">({blockItem.content})</span>
                   </TextContent>
                 </>
+              ) : blockItem.type === 'Resource' ? (
+                (() => {
+                  try {
+                    const resourceData = JSON.parse(blockItem.content) as {
+                      title?: string;
+                      author?: string;
+                      summary?: string;
+                      content?: string;
+                      category?: string;
+                    };
+                    return (
+                      <>
+                        <BlockLabel $isDark={isDark}>Resource:</BlockLabel>
+                        <ResourceContent $isDark={isDark}>
+                          <h3>{resourceData.title || 'Untitled Resource'}</h3>
+                          {resourceData.author && (
+                            <p>
+                              <span className="label">Author:</span> {resourceData.author}
+                            </p>
+                          )}
+                          {resourceData.summary && (
+                            <p>
+                              <span className="label">Summary:</span> {resourceData.summary}
+                            </p>
+                          )}
+                          {resourceData.content && (
+                            <p>
+                              <span className="label">Content:</span> {resourceData.content}
+                            </p>
+                          )}
+                          {resourceData.category && (
+                            <p>
+                              <span className="label">Category:</span> {resourceData.category}
+                            </p>
+                          )}
+                        </ResourceContent>
+                      </>
+                    );
+                  } catch (e) {
+                    console.error('Failed to parse Resource JSON:', e);
+                    return (
+                      <>
+                        <BlockLabel $isDark={isDark}>Resource (Invalid):</BlockLabel>
+                        <TextContent $isDark={isDark}>Invalid resource data</TextContent>
+                      </>
+                    );
+                  }
+                })()
+              ) : blockItem.type === 'Table' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>Table:</BlockLabel>
+                  <TableContent $isDark={isDark}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{blockItem.content}</ReactMarkdown>
+                  </TableContent>
+                </>
               ) : (
                 <>
                   <BlockLabel $isDark={isDark}>{blockItem.type} (Unsupported):</BlockLabel>
-                  <TextContent $isDark={isDark}>{blockItem.content}</TextContent>
+                  <TextContent $isDark={isDark}>
+                    Content not available for this block type
+                  </TextContent>
                 </>
               )}
             </BlockWrapper>
