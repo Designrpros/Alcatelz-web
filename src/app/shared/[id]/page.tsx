@@ -207,7 +207,7 @@ const MarkdownContent = styled.div<{ $isDark: boolean }>`
     font-size: 1.05rem;
   }
 
-  @media ( planters: 768px) {
+  @media (max-width: 768px) {
     font-size: 1rem;
   }
 
@@ -221,12 +221,8 @@ const TodoContent = styled.ul<{ $isDark: boolean }>`
   line-height: 1.8;
   color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
   margin: 0;
-  padding-left: 1.5rem;
-  list-style-type: disc;
-
-  li {
-    margin: 0.5rem 0;
-  }
+  padding-left: 0;
+  list-style-type: none;
 
   @media (max-width: 1024px) {
     font-size: 1.05rem;
@@ -238,6 +234,25 @@ const TodoContent = styled.ul<{ $isDark: boolean }>`
 
   @media (max-width: 480px) {
     font-size: 0.95rem;
+  }
+`;
+
+const TodoItem = styled.li<{ $isDark: boolean }>`
+  display: flex;
+  align-items: center;
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+
+  &:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid ${({ $isDark }) => ($isDark ? '#9ca3af' : '#6b7280')};
+    border-radius: 3px;
+    background: ${({ $isDark }) => ($isDark ? '#2d2d2d' : '#ffffff')};
   }
 `;
 
@@ -577,9 +592,14 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
                 <>
                   <BlockLabel $isDark={isDark}>To-Do:</BlockLabel>
                   <TodoContent $isDark={isDark}>
-                    {blockItem.content.split('\n').map((item: string, idx: number) => (
-                      <li key={idx}>{item}</li>
-                    ))}
+                    {blockItem.content
+                      .split('\n')
+                      .filter((item) => item.trim() !== '')
+                      .map((item: string, idx: number) => (
+                        <TodoItem $isDark={isDark} key={idx}>
+                          {item}
+                        </TodoItem>
+                      ))}
                   </TodoContent>
                 </>
               ) : blockItem.type === 'Quote' ? (
@@ -616,37 +636,30 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
                 </>
               ) : blockItem.type === 'Divider' ? (
                 <DividerContent $isDark={isDark} />
-              ) : blockItem.type === 'image' && blockItem.content.startsWith('[Image: SharedImage:') ? (
+              ) : blockItem.type === 'image' ? (
                 (() => {
-                  const startIndex = '[Image: SharedImage:'.length;
-                  const endIndex = blockItem.content.indexOf(']', startIndex);
-                  if (endIndex !== -1) {
-                    const imageId = blockItem.content.substring(startIndex, endIndex);
-                    if (images[imageId]) {
-                      return (
-                        <>
-                          <BlockLabel $isDark={isDark}>Image:</BlockLabel>
-                          <ImageContent src={images[imageId]} alt="Shared image" />
-                        </>
-                      );
+                  if (blockItem.content.startsWith('[Image: SharedImage:')) {
+                    const startIndex = '[Image: SharedImage:'.length;
+                    const endIndex = blockItem.content.indexOf(']', startIndex);
+                    if (endIndex !== -1) {
+                      const imageId = blockItem.content.substring(startIndex, endIndex);
+                      if (images[imageId]) {
+                        return (
+                          <>
+                            <BlockLabel $isDark={isDark}>Image:</BlockLabel>
+                            <ImageContent src={images[imageId]} alt="Shared image" />
+                          </>
+                        );
+                      }
                     }
                   }
                   return (
                     <>
                       <BlockLabel $isDark={isDark}>Image:</BlockLabel>
-                      <TextContent $isDark={isDark}>
-                        Image not available <span className="text-sm">({blockItem.content})</span>
-                      </TextContent>
+                      <TextContent $isDark={isDark}>Image not available</TextContent>
                     </>
                   );
                 })()
-              ) : blockItem.type === 'image' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Image:</BlockLabel>
-                  <TextContent $isDark={isDark}>
-                    Image not available <span className="text-sm">({blockItem.content})</span>
-                  </TextContent>
-                </>
               ) : blockItem.type === 'Resource' ? (
                 (() => {
                   try {
