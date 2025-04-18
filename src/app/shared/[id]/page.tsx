@@ -686,13 +686,22 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
                   <BlockLabel $isDark={isDark}>Resource:</BlockLabel>
                   {(() => {
                     try {
-                      const resourceData = JSON.parse(blockItem.content) as {
-                        title?: string;
-                        author?: string;
-                        summary?: string;
-                        content?: string;
-                        category?: string;
-                      };
+                      // Validate if content is valid JSON
+                      let resourceData: { title?: string; author?: string; summary?: string; content?: string; category?: string } = {};
+                      try {
+                        JSON.parse(blockItem.content); // Test parse
+                        resourceData = JSON.parse(blockItem.content) as {
+                          title?: string;
+                          author?: string;
+                          summary?: string;
+                          content?: string;
+                          category?: string;
+                        };
+                      } catch (jsonError) {
+                        console.error('Failed to parse Resource JSON:', jsonError);
+                        // Fall back to displaying raw content
+                        return <TextContent $isDark={isDark}>{blockItem.content}</TextContent>;
+                      }
                       return (
                         <ResourceContent $isDark={isDark}>
                           <h3>{resourceData.title || 'Untitled Resource'}</h3>
