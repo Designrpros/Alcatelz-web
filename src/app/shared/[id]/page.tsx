@@ -111,6 +111,7 @@ const TextContent = styled.div<{ $isDark: boolean }>`
   line-height: 1.8;
   color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
   margin: 0;
+  white-space: pre-wrap; /* Preserve newlines and wrap text */
 
   @media (max-width: 1024px) {
     font-size: 1.05rem;
