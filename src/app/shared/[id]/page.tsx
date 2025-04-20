@@ -688,16 +688,22 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
           <StatusMessage $isDark={isDark}>No content available for this page.</StatusMessage>
         ) : (
           blocks.map((blockItem) => {
-            // Generate unique key for toggle state to avoid hook issues
-            const toggleKey = `toggle-${blockItem.id || Math.random()}`;
-            const [isExpanded, setIsExpanded] = useState(false);
-  
-            // Safely access block properties
             const blockType = blockItem?.type?.toLowerCase() || '';
             const content = blockItem?.content || '';
+            const blockId = blockItem.id || `block-${Math.random()}`;
+  
+            // Use state object for toggle states, initialized at component level
+            const [toggleStates, setToggleStates] = useState<{ [key: string]: boolean }>({});
+            const isExpanded = toggleStates[blockId] || false;
+            const toggleExpanded = () => {
+              setToggleStates((prev) => ({
+                ...prev,
+                [blockId]: !prev[blockId],
+              }));
+            };
   
             return (
-              <BlockWrapper key={blockItem.id || `block-${Math.random()}`}>
+              <BlockWrapper key={blockId}>
                 {(() => {
                   switch (blockType) {
                     case 'text':
@@ -982,7 +988,7 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
                               $isDark={isDark}
                               $isHeader={blockType === 'headertoggle'}
                               className={isExpanded ? 'expanded' : ''}
-                              onClick={() => setIsExpanded(!isExpanded)}
+                              onClick={toggleExpanded}
                             >
                               <svg viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M10 17l5-5-5-5v10z" />
