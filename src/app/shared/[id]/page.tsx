@@ -683,264 +683,316 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
         <BackButton $isDark={isDark} onClick={() => router.back()}>
           <MdArrowBack /> Back
         </BackButton>
-        <Title $isDark={isDark}>{pageData.title?.value || 'Untitled Page'}</Title>
+        <Title $isDark={isDark}>{pageData?.title?.value || 'Untitled Page'}</Title>
         {blocks.length === 0 ? (
           <StatusMessage $isDark={isDark}>No content available for this page.</StatusMessage>
         ) : (
           blocks.map((blockItem) => (
-            <BlockWrapper key={blockItem.id}>
-              {blockItem.type.toLowerCase() === 'text' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Text:</BlockLabel>
-                  <TextContent $isDark={isDark}>{blockItem.content}</TextContent>
-                </>
-              ) : blockItem.type.toLowerCase() === 'header2' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Header 2:</BlockLabel>
-                  <Header2Content $isDark={isDark}>{blockItem.content}</Header2Content>
-                </>
-              ) : blockItem.type.toLowerCase() === 'header3' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Header 3:</BlockLabel>
-                  <Header3Content $isDark={isDark}>{blockItem.content}</Header3Content>
-                </>
-              ) : blockItem.type.toLowerCase() === 'caption' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Caption:</BlockLabel>
-                  <CaptionContent $isDark={isDark}>{blockItem.content}</CaptionContent>
-                </>
-              ) : blockItem.type.toLowerCase() === 'subpage' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Sub-Page:</BlockLabel>
-                  <SubPageContent
-                    $isDark={isDark}
-                    href={`/page/${blockItem.content}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      router.push(`/page/${blockItem.content}`);
-                    }}
-                  >
-                    {blockItem.content} (Sub-Page)
-                  </SubPageContent>
-                </>
-              ) : blockItem.type.toLowerCase() === 'divider' ? (
-                <DividerContent $isDark={isDark} />
-              ) : blockItem.type.toLowerCase() === 'image' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Image:</BlockLabel>
-                  {(() => {
-                    if (blockItem.content.startsWith('[Image: SharedImage:')) {
-                      const startIndex = '[Image: SharedImage:'.length;
-                      const endIndex = blockItem.content.indexOf(']', startIndex);
-                      if (endIndex !== -1) {
-                        const imageId = blockItem.content.substring(startIndex, endIndex);
-                        if (images[imageId]) {
-                          return <ImageContent src={images[imageId]} alt="Shared image" />;
-                        } else {
-                          console.warn(`Image not found for imageId: ${imageId}`);
-                          return <TextContent $isDark={isDark}>Image not available</TextContent>;
+            <BlockWrapper key={blockItem.id || `block-${Math.random()}`}>
+              {(() => {
+                const blockType = blockItem?.type?.toLowerCase() || '';
+                const content = blockItem?.content || '';
+  
+                switch (blockType) {
+                  case 'text':
+                    return (
+                      <>
+                        <BlockLabel $isDark={isDark}>Text:</BlockLabel>
+                        <TextContent $isDark={isDark}>{content}</TextContent>
+                      </>
+                    );
+                  case 'header2':
+                    return (
+                      <>
+                        <BlockLabel $isDark={isDark}>Header 2:</BlockLabel>
+                        <Header2Content $isDark={isDark}>{content}</Header2Content>
+                      </>
+                    );
+                  case 'header3':
+                    return (
+                      <>
+                        <BlockLabel $isDark={isDark}>Header 3:</BlockLabel>
+                        <Header3Content $isDark={isDark}>{content}</Header3Content>
+                      </>
+                    );
+                  case 'caption':
+                    return (
+                      <>
+                        <BlockLabel $isDark={isDark}>Caption:</BlockLabel>
+                        <CaptionContent $isDark={isDark}>{content}</CaptionContent>
+                      </>
+                    );
+                  case 'subpage':
+                    return (
+                      <>
+                        <BlockLabel $isDark={isDark}>Sub-Page:</BlockLabel>
+                        <SubPageContent
+                          $isDark={isDark}
+                          href={content ? `/page/${encodeURIComponent(content)}` : '#'}
+                          onClick={(e) => {
+                            if (content) {
+                              e.preventDefault();
+                              router.push(`/page/${encodeURIComponent(content)}`);
+                            }
+                          }}
+                        >
+                          {content || 'Untitled Sub-Page'} (Sub-Page)
+                        </SubPageContent>
+                      </>
+                    );
+                  case 'divider':
+                    return <DividerContent $isDark={isDark} />;
+                  case 'image':
+                    try {
+                      if (content.startsWith('[Image: SharedImage:')) {
+                        const startIndex = '[Image: SharedImage:'.length;
+                        const endIndex = content.indexOf(']', startIndex);
+                        if (endIndex !== -1) {
+                          const imageId = content.substring(startIndex, endIndex);
+                          if (images && images[imageId]) {
+                            return (
+                              <>
+                                <BlockLabel $isDark={isDark}>Image:</BlockLabel>
+                                <ImageContent src={images[imageId]} alt="Shared image" />
+                              </>
+                            );
+                          } else {
+                            console.warn(`Image not found for imageId: ${imageId}`);
+                            return (
+                              <>
+                                <BlockLabel $isDark={isDark}>Image:</BlockLabel>
+                                <TextContent $isDark={isDark}>Image not available</TextContent>
+                              </>
+                            );
+                          }
                         }
                       }
+                      console.warn(`Invalid image content: ${content}`);
+                      return (
+                        <>
+                          <BlockLabel $isDark={isDark}>Image:</BlockLabel>
+                          <TextContent $isDark={isDark}>Image not available</TextContent>
+                        </>
+                      );
+                    } catch (e) {
+                      console.error('Error rendering image block:', e);
+                      return (
+                        <>
+                          <BlockLabel $isDark={isDark}>Image:</BlockLabel>
+                          <TextContent $isDark={isDark}>Image rendering failed</TextContent>
+                        </>
+                      );
                     }
-                    console.warn(`Invalid image content: ${blockItem.content}`);
-                    return <TextContent $isDark={isDark}>Image not available</TextContent>;
-                  })()}
-                </>
-              ) : blockItem.type.toLowerCase() === 'todo' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>To-Do:</BlockLabel>
-                  <TodoContent $isDark={isDark}>
-                    {(() => {
-                      try {
-                        const todoItems = JSON.parse(blockItem.content) as TodoItemData[];
-                        return todoItems.map((item) => (
-                          <TodoItem
-                            $isDark={isDark}
-                            $isCompleted={item.isCompleted}
-                            key={item.id}
-                          >
-                            {item.text}
-                          </TodoItem>
-                        ));
-                      } catch (e) {
-                        console.error('Failed to parse To-Do JSON:', e);
-                        return (
-                          <TextContent $isDark={isDark}>
-                            Invalid to-do data
-                          </TextContent>
-                        );
-                      }
-                    })()}
-                  </TodoContent>
-                </>
-              ) : blockItem.type.toLowerCase() === 'code' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Code:</BlockLabel>
-                  <CodeBlockWrapper>
-                    <CodeBlockContainer>
-                      <CopyButton code={blockItem.content} />
-                      <SyntaxHighlighter
-                        language="javascript"
-                        style={vscDarkPlus}
-                        customStyle={{
-                          marginTop: '1rem',
-                          borderRadius: '8px',
-                          padding: '1rem',
-                          backgroundColor: '#1e1e1e',
-                          position: 'relative',
-                          zIndex: 1,
-                          width: '100%',
-                          boxSizing: 'border-box',
-                        }}
-                        PreTag={CodeBlockContent}
-                      >
-                        {blockItem.content}
-                      </SyntaxHighlighter>
-                    </CodeBlockContainer>
-                  </CodeBlockWrapper>
-                </>
-              ) : blockItem.type.toLowerCase() === 'resource' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Resource:</BlockLabel>
-                  {(() => {
+                  case 'todo':
+                    try {
+                      const todoItems = JSON.parse(content) as TodoItemData[];
+                      return (
+                        <>
+                          <BlockLabel $isDark={isDark}>To-Do:</BlockLabel>
+                          <TodoContent $isDark={isDark}>
+                            {todoItems.map((item) => (
+                              <TodoItem
+                                $isDark={isDark}
+                                $isCompleted={item.isCompleted || false}
+                                key={item.id || `todo-${Math.random()}`}
+                              >
+                                {item.text || ''}
+                              </TodoItem>
+                            ))}
+                          </TodoContent>
+                        </>
+                      );
+                    } catch (e) {
+                      console.error('Failed to parse To-Do JSON:', e);
+                      return (
+                        <>
+                          <BlockLabel $isDark={isDark}>To-Do:</BlockLabel>
+                          <TextContent $isDark={isDark}>Invalid to-do data</TextContent>
+                        </>
+                      );
+                    }
+                  case 'code':
+                    return (
+                      <>
+                        <BlockLabel $isDark={isDark}>Code:</BlockLabel>
+                        <CodeBlockWrapper>
+                          <CodeBlockContainer>
+                            <CopyButton code={content} />
+                            <SyntaxHighlighter
+                              language="javascript"
+                              style={vscDarkPlus}
+                              customStyle={{
+                                marginTop: '1rem',
+                                borderRadius: '8px',
+                                padding: '1rem',
+                                backgroundColor: '#1e1e1e',
+                                position: 'relative',
+                                zIndex: 1,
+                                width: '100%',
+                                boxSizing: 'border-box',
+                              }}
+                              PreTag={CodeBlockContent}
+                            >
+                              {content}
+                            </SyntaxHighlighter>
+                          </CodeBlockContainer>
+                        </CodeBlockWrapper>
+                      </>
+                    );
+                  case 'resource':
                     try {
                       let resourceData: { title?: string; author?: string; summary?: string; content?: string; category?: string } = {};
-                      try {
-                        resourceData = JSON.parse(blockItem.content);
-                      } catch (jsonError) {
-                        console.error('Failed to parse Resource JSON:', jsonError);
-                        return <TextContent $isDark={isDark}>{blockItem.content}</TextContent>;
-                      }
+                      resourceData = JSON.parse(content);
                       return (
-                        <ResourceContent $isDark={isDark}>
-                          <h3>{resourceData.title || 'Untitled Resource'}</h3>
-                          {resourceData.author && (
-                            <p>
-                              <span className="label">Author:</span> {resourceData.author}
-                            </p>
-                          )}
-                          {resourceData.summary && (
-                            <p>
-                              <span className="label">Summary:</span> {resourceData.summary}
-                            </p>
-                          )}
-                          {resourceData.content && (
-                            <p>
-                              <span className="label">Content:</span> {resourceData.content}
-                            </p>
-                          )}
-                          {resourceData.category && (
-                            <p>
-                              <span className="label">Category:</span> {resourceData.category}
-                            </p>
-                          )}
-                        </ResourceContent>
+                        <>
+                          <BlockLabel $isDark={isDark}>Resource:</BlockLabel>
+                          <ResourceContent $isDark={isDark}>
+                            <h3>{resourceData.title || 'Untitled Resource'}</h3>
+                            {resourceData.author && (
+                              <p>
+                                <span className="label">Author:</span> {resourceData.author}
+                              </p>
+                            )}
+                            {resourceData.summary && (
+                              <p>
+                                <span className="label">Summary:</span> {resourceData.summary}
+                              </p>
+                            )}
+                            {resourceData.content && (
+                              <p>
+                                <span className="label">Content:</span> {resourceData.content}
+                              </p>
+                            )}
+                            {resourceData.category && (
+                              <p>
+                                <span className="label">Category:</span> {resourceData.category}
+                              </p>
+                            )}
+                          </ResourceContent>
+                        </>
                       );
                     } catch (e) {
                       console.error('Failed to parse Resource JSON:', e);
-                      return <TextContent $isDark={isDark}>Invalid resource data</TextContent>;
+                      return (
+                        <>
+                          <BlockLabel $isDark={isDark}>Resource:</BlockLabel>
+                          <TextContent $isDark={isDark}>{content}</TextContent>
+                        </>
+                      );
                     }
-                  })()}
-                </>
-              ) : blockItem.type.toLowerCase() === 'markdown' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Markdown:</BlockLabel>
-                  <MarkdownContent $isDark={isDark}>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{blockItem.content}</ReactMarkdown>
-                  </MarkdownContent>
-                </>
-              ) : blockItem.type.toLowerCase() === 'table' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Table:</BlockLabel>
-                  <TableContent $isDark={isDark}>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{blockItem.content}</ReactMarkdown>
-                  </TableContent>
-                </>
-              ) : blockItem.type.toLowerCase() === 'quote' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Quote:</BlockLabel>
-                  <TextContent $isDark={isDark} style={{ fontStyle: 'italic', borderLeft: '4px solid #9d845d', paddingLeft: '1rem' }}>
-                    {blockItem.content}
-                  </TextContent>
-                </>
-              ) : blockItem.type.toLowerCase() === 'video' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Video:</BlockLabel>
-                  <video controls src={blockItem.content} style={{ maxWidth: '100%', borderRadius: '8px', margin: '1rem 0' }} />
-                </>
-              ) : blockItem.type.toLowerCase() === 'bookmark' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Bookmark:</BlockLabel>
-                  <a
-                    href={blockItem.content}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      color: '#9d845d',
-                      textDecoration: 'none',
-                      fontSize: '1.1rem',
-                      display: 'inline-block',
-                      margin: '0.5rem 0',
-                    }}
-                    onMouseOver={(e) => (e.currentTarget.style.textDecoration = 'underline')}
-                    onMouseOut={(e) => (e.currentTarget.style.textDecoration = 'none')}
-                  >
-                    {blockItem.content}
-                  </a>
-                </>
-              ) : blockItem.type.toLowerCase() === 'file' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>File:</BlockLabel>
-                  <FileContent
-                    $isDark={isDark}
-                    href={blockItem.content}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    download
-                  >
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
-                    </svg>
-                    Download File
-                  </FileContent>
-                </>
-              ) : blockItem.type.toLowerCase() === 'headertoggle' || blockItem.type.toLowerCase() === 'normaltoggle' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>{blockItem.type.toLowerCase() === 'headertoggle' ? 'Header Toggle' : 'Normal Toggle'}:</BlockLabel>
-                  {(() => {
-                    const [isExpanded, setIsExpanded] = useState(false);
+                  case 'markdown':
                     return (
-                      <ToggleWrapper $isDark={isDark}>
-                        <ToggleHeader
+                      <>
+                        <BlockLabel $isDark={isDark}>Markdown:</BlockLabel>
+                        <MarkdownContent $isDark={isDark}>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                        </MarkdownContent>
+                      </>
+                    );
+                  case 'table':
+                    return (
+                      <>
+                        <BlockLabel $isDark={isDark}>Table:</BlockLabel>
+                        <TableContent $isDark={isDark}>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                        </TableContent>
+                      </>
+                    );
+                  case 'quote':
+                    return (
+                      <>
+                        <BlockLabel $isDark={isDark}>Quote:</BlockLabel>
+                        <TextContent $isDark={isDark} style={{ fontStyle: 'italic', borderLeft: '4px solid #9d845d', paddingLeft: '1rem' }}>
+                          {content}
+                        </TextContent>
+                      </>
+                    );
+                  case 'video':
+                    return (
+                      <>
+                        <BlockLabel $isDark={isDark}>Video:</BlockLabel>
+                        <video controls src={content} style={{ maxWidth: '100%', borderRadius: '8px', margin: '1rem 0' }} />
+                      </>
+                    );
+                  case 'bookmark':
+                    return (
+                      <>
+                        <BlockLabel $isDark={isDark}>Bookmark:</BlockLabel>
+                        <a
+                          href={content}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: '#9d845d',
+                            textDecoration: 'none',
+                            fontSize: '1.1rem',
+                            display: 'inline-block',
+                            margin: '0.5rem 0',
+                          }}
+                          onMouseOver={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+                          onMouseOut={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                        >
+                          {content || 'Bookmark'}
+                        </a>
+                      </>
+                    );
+                  case 'file':
+                    return (
+                      <>
+                        <BlockLabel $isDark={isDark}>File:</BlockLabel>
+                        <FileContent
                           $isDark={isDark}
-                          $isHeader={blockItem.type.toLowerCase() === 'headertoggle'}
-                          className={isExpanded ? 'expanded' : ''}
-                          onClick={() => setIsExpanded(!isExpanded)}
+                          href={content}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download
                         >
                           <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M10 17l5-5-5-5v10z" />
+                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
                           </svg>
-                          {blockItem.content.split('\n')[0] || 'Toggle'}
-                        </ToggleHeader>
-                        {isExpanded && (
-                          <ToggleContent $isDark={isDark}>
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {blockItem.content}
-                            </ReactMarkdown>
-                          </ToggleContent>
-                        )}
-                      </ToggleWrapper>
+                          Download File
+                        </FileContent>
+                      </>
                     );
-                  })()}
-                </>
-              ) : (
-                <>
-                  <BlockLabel $isDark={isDark}>{blockItem.type} (Unsupported):</BlockLabel>
-                  <TextContent $isDark={isDark}>
-                    Content not available for this block type
-                  </TextContent>
-                </>
-              )}
+                  case 'headertoggle':
+                  case 'normaltoggle':
+                    const [isExpanded, setIsExpanded] = useState(false);
+                    return (
+                      <>
+                        <BlockLabel $isDark={isDark}>{blockType === 'headertoggle' ? 'Header Toggle' : 'Normal Toggle'}:</BlockLabel>
+                        <ToggleWrapper $isDark={isDark}>
+                          <ToggleHeader
+                            $isDark={isDark}
+                            $isHeader={blockType === 'headertoggle'}
+                            className={isExpanded ? 'expanded' : ''}
+                            onClick={() => setIsExpanded(!isExpanded)}
+                          >
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M10 17l5-5-5-5v10z" />
+                            </svg>
+                            {content.split('\n')[0] || 'Toggle'}
+                          </ToggleHeader>
+                          {isExpanded && (
+                            <ToggleContent $isDark={isDark}>
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {content}
+                              </ReactMarkdown>
+                            </ToggleContent>
+                          )}
+                        </ToggleWrapper>
+                      </>
+                    );
+                  default:
+                    return (
+                      <>
+                        <BlockLabel $isDark={isDark}>{blockType || 'Unknown'} (Unsupported):</BlockLabel>
+                        <TextContent $isDark={isDark}>
+                          Content not available for this block type
+                        </TextContent>
+                      </>
+                    );
+                }
+              })()}
             </BlockWrapper>
           ))
         )}
