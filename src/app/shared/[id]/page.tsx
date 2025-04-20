@@ -126,6 +126,135 @@ const TextContent = styled.div<{ $isDark: boolean }>`
   }
 `;
 
+const Header2Content = styled.h2<{ $isDark: boolean }>`
+  font-size: 2rem;
+  font-weight: 600;
+  color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#1f2937')};
+  margin: 1rem 0 0.5rem;
+  line-height: 1.3;
+
+  @media (max-width: 768px) {
+    font-size: 1.75rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.5rem;
+  }
+`;
+
+const Header3Content = styled.h3<{ $isDark: boolean }>`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: ${({ $isDark }) => ($isDark ? '#ffffff' : '#1f2937')};
+  margin: 1rem 0 0.5rem;
+  line-height: 1.3;
+
+  @media (max-width: 768px) {
+    font-size: 1.25rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.1rem;
+  }
+`;
+
+const CaptionContent = styled.p<{ $isDark: boolean }>`
+  font-size: 0.9rem;
+  font-style: italic;
+  color: ${({ $isDark }) => ($isDark ? '#9ca3af' : '#6b7280')};
+  margin: 0.5rem 0;
+  line-height: 1.6;
+
+  @media (max-width: 768px) {
+    font-size: 0.85rem;
+  }
+`;
+
+const SubPageContent = styled.a<{ $isDark: boolean }>`
+  font-size: 1.1rem;
+  color: #9d845d;
+  text-decoration: none;
+  display: inline-block;
+  margin: 0.5rem 0;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #7b6a47;
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
+`;
+
+const FileContent = styled.a<{ $isDark: boolean }>`
+  font-size: 1.1rem;
+  color: #9d845d;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #7b6a47;
+    text-decoration: underline;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
+`;
+
+const ToggleWrapper = styled.div<{ $isDark: boolean }>`
+  margin: 0.5rem 0;
+  border-left: 2px solid ${({ $isDark }) => ($isDark ? '#444444' : '#e5e7eb')};
+  padding-left: 1rem;
+`;
+
+const ToggleHeader = styled.div<{ $isDark: boolean; $isHeader?: boolean }>`
+  font-size: 1.1rem;
+  font-weight: ${({ $isHeader }) => ($isHeader ? 600 : 500)};
+  color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+    transition: transform 0.3s ease;
+  }
+
+  &.expanded svg {
+    transform: rotate(90deg);
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
+`;
+
+const ToggleContent = styled.div<{ $isDark: boolean }>`
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: ${({ $isDark }) => ($isDark ? '#e5e7eb' : '#1f2937')};
+  margin: 0.5rem 0;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
+`;
+
 const CodeBlockWrapper = styled.div`
   position: relative;
   margin-bottom: 2rem;
@@ -479,7 +608,6 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
               stack: imageErr.stack,
             });
           }
-          // Continue rendering the page even if SharedImage query fails
           setImages({});
         }
       } catch (err) {
@@ -561,45 +689,64 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
         ) : (
           blocks.map((blockItem) => (
             <BlockWrapper key={blockItem.id}>
-              {blockItem.type === 'Text' ? (
+              {blockItem.type.toLowerCase() === 'text' ? (
                 <>
                   <BlockLabel $isDark={isDark}>Text:</BlockLabel>
                   <TextContent $isDark={isDark}>{blockItem.content}</TextContent>
                 </>
-              ) : blockItem.type === 'Code' ? (
+              ) : blockItem.type.toLowerCase() === 'header2' ? (
                 <>
-                  <BlockLabel $isDark={isDark}>Code:</BlockLabel>
-                  <CodeBlockWrapper>
-                    <CodeBlockContainer>
-                      <CopyButton code={blockItem.content} />
-                      <SyntaxHighlighter
-                        language="javascript"
-                        style={vscDarkPlus}
-                        customStyle={{
-                          marginTop: '1rem',
-                          borderRadius: '8px',
-                          padding: '1rem',
-                          backgroundColor: '#1e1e1e',
-                          position: 'relative',
-                          zIndex: 1,
-                          width: '100%',
-                          boxSizing: 'border-box',
-                        }}
-                        PreTag={CodeBlockContent}
-                      >
-                        {blockItem.content}
-                      </SyntaxHighlighter>
-                    </CodeBlockContainer>
-                  </CodeBlockWrapper>
+                  <BlockLabel $isDark={isDark}>Header 2:</BlockLabel>
+                  <Header2Content $isDark={isDark}>{blockItem.content}</Header2Content>
                 </>
-              ) : blockItem.type === 'Markdown' ? (
+              ) : blockItem.type.toLowerCase() === 'header3' ? (
                 <>
-                  <BlockLabel $isDark={isDark}>Markdown:</BlockLabel>
-                  <MarkdownContent $isDark={isDark}>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{blockItem.content}</ReactMarkdown>
-                  </MarkdownContent>
+                  <BlockLabel $isDark={isDark}>Header 3:</BlockLabel>
+                  <Header3Content $isDark={isDark}>{blockItem.content}</Header3Content>
                 </>
-              ) : blockItem.type === 'To-Do' ? (
+              ) : blockItem.type.toLowerCase() === 'caption' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>Caption:</BlockLabel>
+                  <CaptionContent $isDark={isDark}>{blockItem.content}</CaptionContent>
+                </>
+              ) : blockItem.type.toLowerCase() === 'subpage' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>Sub-Page:</BlockLabel>
+                  <SubPageContent
+                    $isDark={isDark}
+                    href={`/page/${blockItem.content}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      router.push(`/page/${blockItem.content}`);
+                    }}
+                  >
+                    {blockItem.content} (Sub-Page)
+                  </SubPageContent>
+                </>
+              ) : blockItem.type.toLowerCase() === 'divider' ? (
+                <DividerContent $isDark={isDark} />
+              ) : blockItem.type.toLowerCase() === 'image' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>Image:</BlockLabel>
+                  {(() => {
+                    if (blockItem.content.startsWith('[Image: SharedImage:')) {
+                      const startIndex = '[Image: SharedImage:'.length;
+                      const endIndex = blockItem.content.indexOf(']', startIndex);
+                      if (endIndex !== -1) {
+                        const imageId = blockItem.content.substring(startIndex, endIndex);
+                        if (images[imageId]) {
+                          return <ImageContent src={images[imageId]} alt="Shared image" />;
+                        } else {
+                          console.warn(`Image not found for imageId: ${imageId}`);
+                          return <TextContent $isDark={isDark}>Image not available</TextContent>;
+                        }
+                      }
+                    }
+                    console.warn(`Invalid image content: ${blockItem.content}`);
+                    return <TextContent $isDark={isDark}>Image not available</TextContent>;
+                  })()}
+                </>
+              ) : blockItem.type.toLowerCase() === 'todo' ? (
                 <>
                   <BlockLabel $isDark={isDark}>To-Do:</BlockLabel>
                   <TodoContent $isDark={isDark}>
@@ -626,80 +773,42 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
                     })()}
                   </TodoContent>
                 </>
-              ) : blockItem.type === 'Quote' ? (
+              ) : blockItem.type.toLowerCase() === 'code' ? (
                 <>
-                  <BlockLabel $isDark={isDark}>Quote:</BlockLabel>
-                  <TextContent $isDark={isDark} style={{ fontStyle: 'italic', borderLeft: '4px solid #9d845d', paddingLeft: '1rem' }}>
-                    {blockItem.content}
-                  </TextContent>
+                  <BlockLabel $isDark={isDark}>Code:</BlockLabel>
+                  <CodeBlockWrapper>
+                    <CodeBlockContainer>
+                      <CopyButton code={blockItem.content} />
+                      <SyntaxHighlighter
+                        language="javascript"
+                        style={vscDarkPlus}
+                        customStyle={{
+                          marginTop: '1rem',
+                          borderRadius: '8px',
+                          padding: '1rem',
+                          backgroundColor: '#1e1e1e',
+                          position: 'relative',
+                          zIndex: 1,
+                          width: '100%',
+                          boxSizing: 'border-box',
+                        }}
+                        PreTag={CodeBlockContent}
+                      >
+                        {blockItem.content}
+                      </SyntaxHighlighter>
+                    </CodeBlockContainer>
+                  </CodeBlockWrapper>
                 </>
-              ) : blockItem.type === 'Video' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Video:</BlockLabel>
-                  <video controls src={blockItem.content} style={{ maxWidth: '100%', borderRadius: '8px', margin: '1rem 0' }} />
-                </>
-              ) : blockItem.type === 'Bookmark' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Bookmark:</BlockLabel>
-                  <a
-                    href={blockItem.content}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      color: '#9d845d',
-                      textDecoration: 'none',
-                      fontSize: '1.1rem',
-                      display: 'inline-block',
-                      margin: '0.5rem 0',
-                    }}
-                    onMouseOver={(e) => (e.currentTarget.style.textDecoration = 'underline')}
-                    onMouseOut={(e) => (e.currentTarget.style.textDecoration = 'none')}
-                  >
-                    {blockItem.content}
-                  </a>
-                </>
-              ) : blockItem.type === 'Divider' ? (
-                <DividerContent $isDark={isDark} />
-              ) : blockItem.type === 'image' ? (
-                <>
-                  <BlockLabel $isDark={isDark}>Image:</BlockLabel>
-                  {(() => {
-                    if (blockItem.content.startsWith('[Image: SharedImage:')) {
-                      const startIndex = '[Image: SharedImage:'.length;
-                      const endIndex = blockItem.content.indexOf(']', startIndex);
-                      if (endIndex !== -1) {
-                        const imageId = blockItem.content.substring(startIndex, endIndex);
-                        if (images[imageId]) {
-                          return <ImageContent src={images[imageId]} alt="Shared image" />;
-                        } else {
-                          console.warn(`Image not found for imageId: ${imageId}`);
-                          return <TextContent $isDark={isDark}>Image not available</TextContent>;
-                        }
-                      }
-                    }
-                    console.warn(`Invalid image content: ${blockItem.content}`);
-                    return <TextContent $isDark={isDark}>Image not available</TextContent>;
-                  })()}
-                </>
-              ) : blockItem.type === 'Resource' ? (
+              ) : blockItem.type.toLowerCase() === 'resource' ? (
                 <>
                   <BlockLabel $isDark={isDark}>Resource:</BlockLabel>
                   {(() => {
                     try {
-                      // Validate if content is valid JSON
                       let resourceData: { title?: string; author?: string; summary?: string; content?: string; category?: string } = {};
                       try {
-                        JSON.parse(blockItem.content); // Test parse
-                        resourceData = JSON.parse(blockItem.content) as {
-                          title?: string;
-                          author?: string;
-                          summary?: string;
-                          content?: string;
-                          category?: string;
-                        };
+                        resourceData = JSON.parse(blockItem.content);
                       } catch (jsonError) {
                         console.error('Failed to parse Resource JSON:', jsonError);
-                        // Fall back to displaying raw content
                         return <TextContent $isDark={isDark}>{blockItem.content}</TextContent>;
                       }
                       return (
@@ -733,12 +842,96 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
                     }
                   })()}
                 </>
-              ) : blockItem.type === 'Table' ? (
+              ) : blockItem.type.toLowerCase() === 'markdown' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>Markdown:</BlockLabel>
+                  <MarkdownContent $isDark={isDark}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{blockItem.content}</ReactMarkdown>
+                  </MarkdownContent>
+                </>
+              ) : blockItem.type.toLowerCase() === 'table' ? (
                 <>
                   <BlockLabel $isDark={isDark}>Table:</BlockLabel>
                   <TableContent $isDark={isDark}>
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{blockItem.content}</ReactMarkdown>
                   </TableContent>
+                </>
+              ) : blockItem.type.toLowerCase() === 'quote' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>Quote:</BlockLabel>
+                  <TextContent $isDark={isDark} style={{ fontStyle: 'italic', borderLeft: '4px solid #9d845d', paddingLeft: '1rem' }}>
+                    {blockItem.content}
+                  </TextContent>
+                </>
+              ) : blockItem.type.toLowerCase() === 'video' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>Video:</BlockLabel>
+                  <video controls src={blockItem.content} style={{ maxWidth: '100%', borderRadius: '8px', margin: '1rem 0' }} />
+                </>
+              ) : blockItem.type.toLowerCase() === 'bookmark' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>Bookmark:</BlockLabel>
+                  <a
+                    href={blockItem.content}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: '#9d845d',
+                      textDecoration: 'none',
+                      fontSize: '1.1rem',
+                      display: 'inline-block',
+                      margin: '0.5rem 0',
+                    }}
+                    onMouseOver={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+                    onMouseOut={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                  >
+                    {blockItem.content}
+                  </a>
+                </>
+              ) : blockItem.type.toLowerCase() === 'file' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>File:</BlockLabel>
+                  <FileContent
+                    $isDark={isDark}
+                    href={blockItem.content}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+                    </svg>
+                    Download File
+                  </FileContent>
+                </>
+              ) : blockItem.type.toLowerCase() === 'headertoggle' || blockItem.type.toLowerCase() === 'normaltoggle' ? (
+                <>
+                  <BlockLabel $isDark={isDark}>{blockItem.type.toLowerCase() === 'headertoggle' ? 'Header Toggle' : 'Normal Toggle'}:</BlockLabel>
+                  {(() => {
+                    const [isExpanded, setIsExpanded] = useState(false);
+                    return (
+                      <ToggleWrapper $isDark={isDark}>
+                        <ToggleHeader
+                          $isDark={isDark}
+                          $isHeader={blockItem.type.toLowerCase() === 'headertoggle'}
+                          className={isExpanded ? 'expanded' : ''}
+                          onClick={() => setIsExpanded(!isExpanded)}
+                        >
+                          <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M10 17l5-5-5-5v10z" />
+                          </svg>
+                          {blockItem.content.split('\n')[0] || 'Toggle'}
+                        </ToggleHeader>
+                        {isExpanded && (
+                          <ToggleContent $isDark={isDark}>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {blockItem.content}
+                            </ReactMarkdown>
+                          </ToggleContent>
+                        )}
+                      </ToggleWrapper>
+                    );
+                  })()}
                 </>
               ) : (
                 <>
