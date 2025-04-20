@@ -520,6 +520,8 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isExpired, setIsExpired] = useState(false);
+  // State for toggle blocks, keyed by block ID
+  const [toggleStates, setToggleStates] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -677,6 +679,13 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
     );
   }
 
+  const toggleExpanded = (blockId: string) => {
+    setToggleStates((prev) => ({
+      ...prev,
+      [blockId]: !prev[blockId],
+    }));
+  };
+
   return (
     <PageContainer $isDark={isDark}>
       <InnerContent>
@@ -691,17 +700,8 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
             const blockType = blockItem?.type?.toLowerCase() || '';
             const content = blockItem?.content || '';
             const blockId = blockItem.id || `block-${Math.random()}`;
-  
-            // Use state object for toggle states, initialized at component level
-            const [toggleStates, setToggleStates] = useState<{ [key: string]: boolean }>({});
             const isExpanded = toggleStates[blockId] || false;
-            const toggleExpanded = () => {
-              setToggleStates((prev) => ({
-                ...prev,
-                [blockId]: !prev[blockId],
-              }));
-            };
-  
+
             return (
               <BlockWrapper key={blockId}>
                 {(() => {
@@ -988,7 +988,7 @@ export default function SharedPage({ params: paramsPromise }: { params: Promise<
                               $isDark={isDark}
                               $isHeader={blockType === 'headertoggle'}
                               className={isExpanded ? 'expanded' : ''}
-                              onClick={toggleExpanded}
+                              onClick={() => toggleExpanded(blockId)}
                             >
                               <svg viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M10 17l5-5-5-5v10z" />
